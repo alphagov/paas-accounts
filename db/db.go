@@ -52,7 +52,11 @@ func (db *DB) Init() error {
 	}
 
 	defer m.Close()
-	return m.Up()
+	if err := m.Up(); err != migrate.ErrNoChange {
+		return err
+	}
+
+	return nil
 }
 
 func (db *DB) PutDocument(doc Document) error {
