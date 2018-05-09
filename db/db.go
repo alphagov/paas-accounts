@@ -11,6 +11,10 @@ import (
 	_ "github.com/golang-migrate/migrate/source/file"
 )
 
+type User struct {
+	UUID string
+}
+
 type Document struct {
 	Name, Content string
 	ValidFrom     time.Time
@@ -70,4 +74,10 @@ func (db *DB) GetDocument(name string) (Document, error) {
 	err := db.conn.QueryRow(`SELECT name, content, valid_from FROM documents WHERE name = $1 ORDER BY valid_from DESC LIMIT 1`, name).Scan(&doc.Name, &doc.Content, &doc.ValidFrom)
 
 	return doc, err
+}
+
+func (db *DB) PutUser(user User) error {
+	_, err := db.conn.Exec(`INSERT INTO users (uuid) VALUES ($1) ON CONFLICT DO NOTHING`, user.UUID)
+
+	return err
 }

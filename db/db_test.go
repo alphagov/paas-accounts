@@ -102,4 +102,25 @@ var _ = Describe("DB", func() {
 			Expect(db.PutDocument(doc2)).To(MatchError(ContainSubstring("cannot_alter_document_history")))
 		})
 	})
+
+	Describe("User", func() {
+		It("should put a user idempotently", func() {
+			user := User{
+				UUID: "00000000-0000-0000-0000-000000000001",
+			}
+
+			Expect(db.PutUser(user)).To(Succeed())
+			Expect(db.PutUser(user)).To(Succeed())
+		})
+
+		It("should fail to put a user without a uuid", func() {
+			user := User{
+				UUID: "",
+			}
+
+			err := db.PutUser(user)
+			Expect(err).To(MatchError(ContainSubstring("invalid input syntax for uuid")))
+		})
+
+	})
 })
