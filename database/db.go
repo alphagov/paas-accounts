@@ -23,9 +23,9 @@ type Document struct {
 }
 
 type Agreement struct {
-	UserUUID     string
-	DocumentName string
-	Date         time.Time
+	UserUUID     string    `json:"user_uuid"`
+	DocumentName string    `json:"document_name"`
+	Date         time.Time `json:"date"`
 }
 
 var (
