@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"os"
 	"path/filepath"
 	"time"
@@ -26,6 +27,10 @@ type Agreement struct {
 	DocumentName string
 	Date         time.Time
 }
+
+var (
+	ErrDocumentNotFound = errors.New("document not found")
+)
 
 func sqlDir() string {
 	root := os.Getenv("APP_ROOT")
@@ -79,6 +84,10 @@ func (db *DB) PutDocument(doc Document) error {
 func (db *DB) GetDocument(name string) (Document, error) {
 	doc := Document{}
 	err := db.conn.QueryRow(`SELECT name, content, valid_from FROM documents WHERE name = $1 ORDER BY valid_from DESC LIMIT 1`, name).Scan(&doc.Name, &doc.Content, &doc.ValidFrom)
+
+	if err == sql.ErrNoRows {
+		err = ErrDocumentNotFound
+	}
 
 	return doc, err
 }
