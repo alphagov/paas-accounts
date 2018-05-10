@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"database/sql"
@@ -34,7 +34,7 @@ func sqlDir() string {
 	if root == "" {
 		root, _ = os.Getwd()
 	}
-	return filepath.Join(root, "db", "sql")
+	return filepath.Join(root, "database", "sql")
 }
 
 type DB struct {

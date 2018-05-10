@@ -1,9 +1,9 @@
-package db_test
+package database_test
 
 import (
 	"time"
 
-	. "github.com/alphagov/paas-accounts/db"
+	. "github.com/alphagov/paas-accounts/database"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
