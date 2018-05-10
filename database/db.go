@@ -16,8 +16,9 @@ type User struct {
 }
 
 type Document struct {
-	Name, Content string
-	ValidFrom     time.Time
+	Name      string    `json:"name"`
+	Content   string    `json:"content"`
+	ValidFrom time.Time `json:"valid_from"`
 }
 
 type Agreement struct {
