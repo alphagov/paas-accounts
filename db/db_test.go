@@ -121,6 +121,85 @@ var _ = Describe("DB", func() {
 			err := db.PutUser(user)
 			Expect(err).To(MatchError(ContainSubstring("invalid input syntax for uuid")))
 		})
+	})
+
+	Describe("Agreement", func() {
+
+		var (
+			user     User
+			document Document
+		)
+
+		BeforeEach(func() {
+			user = User{
+				UUID: "00000000-0000-0000-0000-000000000001",
+			}
+			document = Document{
+				Name:      "document",
+				Content:   "some agreement terms",
+				ValidFrom: frozenTime,
+			}
+			Expect(db.PutUser(user)).To(Succeed())
+			Expect(db.PutDocument(document)).To(Succeed())
+		})
+
+		It("should put Agreement", func() {
+			agreement := Agreement{
+				UserUUID:     user.UUID,
+				DocumentName: document.Name,
+				Date:         time.Date(2002, 2, 2, 2, 2, 2, 0, time.UTC),
+			}
+
+			Expect(db.PutAgreement(agreement)).To(Succeed())
+
+			agreements, err := db.GetAgreementsForUserUUID(user.UUID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(agreements).To(HaveLen(1))
+			Expect(agreements[0]).To(Equal(agreement))
+		})
+
+		It("should fail to put Agreement without a valid user UUID", func() {
+			agreement := Agreement{
+				UserUUID:     "00000000-0000-0000-0000-000000000002",
+				DocumentName: document.Name,
+				Date:         time.Date(2002, 2, 2, 2, 2, 2, 0, time.UTC),
+			}
+
+			err := db.PutAgreement(agreement)
+			Expect(err).To(MatchError(ContainSubstring("agreements_user_uuid_fkey")))
+		})
+
+		It("should fail to put Agreement without a valid document name", func() {
+			agreement := Agreement{
+				UserUUID:     user.UUID,
+				DocumentName: "non-existant-doc",
+				Date:         time.Date(2002, 2, 2, 2, 2, 2, 0, time.UTC),
+			}
+
+			err := db.PutAgreement(agreement)
+			Expect(err).To(MatchError(ContainSubstring("agreements_document_not_exist")))
+		})
+
+		It("should fail to put Agreement before a document is valid", func() {
+			agreement := Agreement{
+				UserUUID:     user.UUID,
+				DocumentName: "document",
+				Date:         time.Date(2000, 0, 0, 0, 0, 0, 0, time.UTC),
+			}
+
+			err := db.PutAgreement(agreement)
+			Expect(err).To(MatchError(ContainSubstring("agreements_document_not_exist")))
+		})
+
+		It("should fail to put Agreement without a date", func() {
+			agreement := Agreement{
+				UserUUID:     user.UUID,
+				DocumentName: document.Name,
+			}
+
+			err := db.PutAgreement(agreement)
+			Expect(err).To(MatchError(ContainSubstring("agreements_date_check")))
+		})
 
 	})
 })

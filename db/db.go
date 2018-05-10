@@ -20,6 +20,12 @@ type Document struct {
 	ValidFrom     time.Time
 }
 
+type Agreement struct {
+	UserUUID     string
+	DocumentName string
+	Date         time.Time
+}
+
 func sqlDir() string {
 	root := os.Getenv("APP_ROOT")
 	if root == "" {
@@ -80,4 +86,44 @@ func (db *DB) PutUser(user User) error {
 	_, err := db.conn.Exec(`INSERT INTO users (uuid) VALUES ($1) ON CONFLICT DO NOTHING`, user.UUID)
 
 	return err
+}
+
+func (db *DB) PutAgreement(agreement Agreement) error {
+	_, err := db.conn.Exec(`
+		INSERT INTO agreements (
+			user_uuid, document_name, date
+		) VALUES (
+			$1, $2, $3
+		)
+	`, agreement.UserUUID, agreement.DocumentName, agreement.Date)
+
+	return err
+}
+
+func (db *DB) GetAgreementsForUserUUID(uuid string) ([]Agreement, error) {
+	rows, err := db.conn.Query(`
+		SELECT
+			user_uuid, document_name, date
+		FROM
+			agreements
+		WHERE
+			user_uuid = $1
+		ORDER BY
+			date
+	`, uuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	agreements := []Agreement{}
+	for rows.Next() {
+		var agreement Agreement
+		err := rows.Scan(&agreement.UserUUID, &agreement.DocumentName, &agreement.Date)
+		if err != nil {
+			return nil, err
+		}
+		agreements = append(agreements, agreement)
+	}
+
+	return agreements, nil
 }
