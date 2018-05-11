@@ -38,6 +38,7 @@ type UserDocument struct {
 
 var (
 	ErrDocumentNotFound = errors.New("document not found")
+	ErrUserNotFound     = errors.New("user not found")
 )
 
 func sqlDir() string {
@@ -104,6 +105,19 @@ func (db *DB) PutUser(user User) error {
 	_, err := db.conn.Exec(`INSERT INTO users (uuid) VALUES ($1) ON CONFLICT DO NOTHING`, user.UUID)
 
 	return err
+}
+
+func (db *DB) GetUser(uuid string) (User, error) {
+	user := User{}
+	err := db.conn.QueryRow(`
+		SELECT uuid FROM users WHERE uuid = $1
+	`, uuid).Scan(&user.UUID)
+
+	if err == sql.ErrNoRows {
+		err = ErrUserNotFound
+	}
+
+	return user, err
 }
 
 func (db *DB) PutAgreement(agreement Agreement) error {

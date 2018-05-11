@@ -75,4 +75,44 @@ var _ = Describe("PostAgreementsHandler", func() {
 		Expect(agreements[0].DocumentName).To(Equal(input.DocumentName))
 		Expect(agreements[0].Date).To(BeTemporally("~", time.Now(), time.Minute))
 	})
+
+	It("should accept an agreement even when user doesn't exist", func() {
+		document := database.Document{
+			Name:      "document-one",
+			Content:   "content one",
+			ValidFrom: time.Now(),
+		}
+		Expect(db.PutDocument(document)).To(Succeed())
+
+		userUUID := "00000000-0000-0000-0000-000000000001"
+
+		input := database.Agreement{
+			UserUUID:     userUUID,
+			DocumentName: document.Name,
+		}
+
+		buf, err := json.Marshal(input)
+		Expect(err).ToNot(HaveOccurred())
+		req := httptest.NewRequest(echo.PUT, "/", bytes.NewReader(buf))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		ctx := echo.New().NewContext(req, res)
+		ctx.SetPath("/agreements")
+
+		handler := PostAgreementsHandler(db)
+		Expect(handler(ctx)).To(Succeed())
+		Expect(res.Body.String()).To(BeEmpty())
+		Expect(res.Code).To(Equal(http.StatusCreated))
+
+		agreements, err := db.GetAgreementsForUserUUID(userUUID)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(agreements).To(HaveLen(1))
+		Expect(agreements[0].UserUUID).To(Equal(input.UserUUID))
+		Expect(agreements[0].DocumentName).To(Equal(input.DocumentName))
+		Expect(agreements[0].Date).To(BeTemporally("~", time.Now(), time.Minute))
+
+		user, err := db.GetUser(input.UserUUID)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(user.UUID).To(Equal(input.UserUUID))
+	})
 })
