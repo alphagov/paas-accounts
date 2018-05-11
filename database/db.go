@@ -10,6 +10,7 @@ import (
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/lib/pq"
 )
 
 type User struct {
@@ -26,6 +27,13 @@ type Agreement struct {
 	UserUUID     string    `json:"user_uuid"`
 	DocumentName string    `json:"document_name"`
 	Date         time.Time `json:"date"`
+}
+
+type UserDocument struct {
+	Name          string     `json:"name"`
+	Content       string     `json:"content"`
+	ValidFrom     time.Time  `json:"valid_from"`
+	AgreementDate *time.Time `json:"agreement_date"`
 }
 
 var (
@@ -108,6 +116,53 @@ func (db *DB) PutAgreement(agreement Agreement) error {
 	`, agreement.UserUUID, agreement.DocumentName, agreement.Date)
 
 	return err
+}
+
+func (db *DB) GetDocumentsForUserUUID(uuid string) ([]UserDocument, error) {
+	rows, err := db.conn.Query(`
+		WITH valid_documents AS (
+			SELECT
+				*,
+				tstzrange(valid_from, lead(valid_from, 1, 'infinity') over (
+						partition by name order by valid_from rows between current row and 1 following
+				)) as valid_for
+			FROM
+				documents
+		)
+		SELECT
+			d.name,
+			d.content,
+			d.valid_from,
+			agreements.date
+		FROM
+			valid_documents d
+		LEFT JOIN
+			agreements ON (
+				d.name = agreements.document_name
+				AND agreements.date <@ d.valid_for
+				AND agreements.user_uuid = $1
+			)
+		ORDER BY
+			agreements.date
+	`, uuid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	userDocuments := []UserDocument{}
+	for rows.Next() {
+		var userDocument UserDocument
+		var nullTime pq.NullTime
+		err := rows.Scan(&userDocument.Name, &userDocument.Content, &userDocument.ValidFrom, &nullTime)
+		if err != nil {
+			return nil, err
+		}
+		if nullTime.Valid {
+			userDocument.AgreementDate = &nullTime.Time
+		}
+		userDocuments = append(userDocuments, userDocument)
+	}
+	return userDocuments, nil
 }
 
 func (db *DB) GetAgreementsForUserUUID(uuid string) ([]Agreement, error) {

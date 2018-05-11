@@ -202,4 +202,76 @@ var _ = Describe("DB", func() {
 		})
 
 	})
+
+	Describe("GetDocumentsForUserUUID", func() {
+		var (
+			user                                                 User
+			documentSuperseded, documentAgreed, documentUnagreed Document
+			agreement, agreementSuperseded                       Agreement
+		)
+
+		BeforeEach(func() {
+			user = User{
+				UUID: "00000000-0000-0000-0000-000000000001",
+			}
+			Expect(db.PutUser(user)).To(Succeed())
+
+			documentAgreed = Document{
+				Name:      "document-agreed",
+				Content:   "content agreed",
+				ValidFrom: time.Date(2002, 2, 2, 2, 2, 2, 0, time.UTC),
+			}
+
+			documentSuperseded = documentAgreed
+			documentSuperseded.ValidFrom = documentAgreed.ValidFrom.AddDate(-1, 0, 0)
+			Expect(db.PutDocument(documentSuperseded)).To(Succeed())
+
+			agreementSuperseded = Agreement{
+				UserUUID:     user.UUID,
+				DocumentName: documentSuperseded.Name,
+				Date:         documentSuperseded.ValidFrom,
+			}
+			Expect(db.PutAgreement(agreementSuperseded)).To(Succeed())
+			Expect(db.PutDocument(documentAgreed)).To(Succeed())
+
+			agreement = Agreement{
+				UserUUID:     user.UUID,
+				DocumentName: documentAgreed.Name,
+				Date:         time.Date(2004, 4, 4, 4, 4, 4, 0, time.UTC),
+			}
+			Expect(db.PutAgreement(agreement)).To(Succeed())
+
+			documentUnagreed = Document{
+				Name:      "document-unagreed",
+				Content:   "content unagreed",
+				ValidFrom: time.Date(2003, 3, 3, 3, 3, 3, 0, time.UTC),
+			}
+			Expect(db.PutDocument(documentUnagreed)).To(Succeed())
+		})
+
+		It("should return all relevant documents for a user", func() {
+			userDocuments, err := db.GetDocumentsForUserUUID(user.UUID)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(userDocuments).To(Equal([]UserDocument{
+				{
+					Name:          documentSuperseded.Name,
+					Content:       documentSuperseded.Content,
+					ValidFrom:     documentSuperseded.ValidFrom,
+					AgreementDate: &agreementSuperseded.Date,
+				},
+				{
+					Name:          documentAgreed.Name,
+					Content:       documentAgreed.Content,
+					ValidFrom:     documentAgreed.ValidFrom,
+					AgreementDate: &agreement.Date,
+				},
+				{
+					Name:          documentUnagreed.Name,
+					Content:       documentUnagreed.Content,
+					ValidFrom:     documentUnagreed.ValidFrom,
+					AgreementDate: nil,
+				},
+			}))
+		})
+	})
 })
