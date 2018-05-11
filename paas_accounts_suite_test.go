@@ -9,5 +9,5 @@ import (
 
 func TestPaasAccounts(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "PaasAccounts Suite")
+	RunSpecs(t, "Main Suite")
 }

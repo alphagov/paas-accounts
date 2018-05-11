@@ -206,3 +206,7 @@ func (db *DB) GetAgreementsForUserUUID(uuid string) ([]Agreement, error) {
 
 	return agreements, nil
 }
+
+func (db *DB) Ping() error {
+	return db.conn.Ping()
+}
