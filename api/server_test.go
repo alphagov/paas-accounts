@@ -2,9 +2,12 @@ package api_test
 
 import (
 	"context"
+	"errors"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"time"
 
@@ -97,6 +100,11 @@ var _ = Describe("Server", func() {
 			res, err := client.Do(req)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res.StatusCode).To(Equal(401))
+			b, err := ioutil.ReadAll(res.Body)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(string(b)).To(MatchJSON(`{
+				"message": "Unauthorized"
+			}`))
 		},
 		Entry("POST /agreements", "POST", "/agreements"),
 		Entry("PUT /documents/:name", "PUT", "/documents/doc-one"),
@@ -125,5 +133,27 @@ var _ = Describe("Server", func() {
 		Entry("GET /documents/:name", "GET", "/documents/doc-one", 404),
 		Entry("GET /users/:uuid/documents", "GET", "/users/569a91c6-7f5d-4dac-82a2-db85cc595c75/documents", 200),
 	)
+
+	Describe("ErrorHandler", func() {
+		It("should return all errors as json", func() {
+			req := httptest.NewRequest(echo.GET, "/", nil)
+			res := httptest.NewRecorder()
+
+			e := echo.New()
+			e.Logger.SetOutput(GinkgoWriter)
+
+			ctx := e.NewContext(req, res)
+			ctx.SetPath("/")
+
+			err := errors.New("BANG")
+			ErrorHandler(err, ctx)
+			Expect(res.Body).To(MatchJSON(`{
+				"message": "` + err.Error() + `"
+			}`))
+			Expect(res.Code).To(Equal(http.StatusInternalServerError))
+			Expect(res.Header().Get("Content-Type")).To(Equal(echo.MIMEApplicationJSONCharsetUTF8))
+		})
+
+	})
 
 })
