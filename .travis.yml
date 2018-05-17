@@ -1,0 +1,20 @@
+dist: trusty
+sudo: false
+
+language: go
+
+go:
+  - 1.9
+
+services:
+  - postgresql
+
+addons:
+  postgresql: "9.5"
+
+install:
+  - go get github.com/onsi/ginkgo/ginkgo
+
+script:
+  - export APP_ROOT="$TRAVIS_BUILD_DIR"
+  - ginkgo -r -nodes=4
