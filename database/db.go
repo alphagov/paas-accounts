@@ -85,9 +85,17 @@ func (db *DB) Init() error {
 }
 
 func (db *DB) PutDocument(doc Document) error {
-	_, err := db.conn.Exec(`INSERT INTO documents (name, content, valid_from) VALUES ($1, $2, $3)`, doc.Name, doc.Content, doc.ValidFrom)
+	latestDocVersion, err := db.GetDocument(doc.Name)
+	if err != nil && err != ErrDocumentNotFound {
+		return err
+	}
 
-	return err
+	if err == ErrDocumentNotFound || latestDocVersion.Content != doc.Content {
+		_, err = db.conn.Exec(`INSERT INTO documents (name, content, valid_from) VALUES ($1, $2, $3)`, doc.Name, doc.Content, doc.ValidFrom)
+		return err
+	}
+
+	return nil
 }
 
 func (db *DB) GetDocument(name string) (Document, error) {
