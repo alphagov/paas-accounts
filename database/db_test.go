@@ -101,6 +101,28 @@ var _ = Describe("DB", func() {
 			Expect(db.PutDocument(doc1)).To(Succeed())
 			Expect(db.PutDocument(doc2)).To(MatchError(ContainSubstring("cannot_alter_document_history")))
 		})
+
+		It("should not update a document if the content matches the latest version", func() {
+			firstDate := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+			secondDate := time.Date(2002, 2, 2, 2, 2, 2, 2, time.UTC)
+			doc1 := Document{
+				Name:      "document",
+				Content:   "some-content",
+				ValidFrom: firstDate,
+			}
+			doc2 := Document{
+				Name:      "document",
+				Content:   "some-content",
+				ValidFrom: secondDate,
+			}
+
+			Expect(db.PutDocument(doc1)).To(Succeed())
+			Expect(db.PutDocument(doc2)).To(Succeed())
+
+			latestVersion, err := db.GetDocument("document")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(latestVersion.ValidFrom).To(Equal(firstDate))
+		})
 	})
 
 	Describe("User", func() {
@@ -224,6 +246,7 @@ var _ = Describe("DB", func() {
 
 			documentSuperseded = documentAgreed
 			documentSuperseded.ValidFrom = documentAgreed.ValidFrom.AddDate(-1, 0, 0)
+			documentSuperseded.Content = documentAgreed.Content + " v2"
 			Expect(db.PutDocument(documentSuperseded)).To(Succeed())
 
 			agreementSuperseded = Agreement{
