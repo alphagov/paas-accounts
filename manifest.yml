@@ -7,6 +7,6 @@ applications:
    instances: 2
    buildpack: go_buildpack
    env:
-     GOVERSION: go1.9
+     GOVERSION: go1.11
      GOPACKAGENAME: github.com/alphagov/paas-accounts
    command: ./bin/paas-accounts
