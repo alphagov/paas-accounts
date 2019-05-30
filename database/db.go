@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/golang-migrate/migrate"
@@ -14,7 +15,8 @@ import (
 )
 
 type User struct {
-	UUID string
+	UUID  string `json:"user_uuid"`
+	Email string `json:"user_email"`
 }
 
 type Document struct {
@@ -110,7 +112,7 @@ func (db *DB) GetDocument(name string) (Document, error) {
 }
 
 func (db *DB) PutUser(user User) error {
-	_, err := db.conn.Exec(`INSERT INTO users (uuid) VALUES ($1) ON CONFLICT DO NOTHING`, user.UUID)
+	_, err := db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2) ON CONFLICT DO NOTHING`, user.UUID, strings.ToLower(user.Email))
 
 	return err
 }
@@ -118,8 +120,8 @@ func (db *DB) PutUser(user User) error {
 func (db *DB) GetUser(uuid string) (User, error) {
 	user := User{}
 	err := db.conn.QueryRow(`
-		SELECT uuid FROM users WHERE uuid = $1
-	`, uuid).Scan(&user.UUID)
+		SELECT uuid, email FROM users WHERE uuid = $1
+	`, uuid).Scan(&user.UUID, &user.Email)
 
 	if err == sql.ErrNoRows {
 		err = ErrUserNotFound

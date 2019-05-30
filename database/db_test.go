@@ -128,7 +128,8 @@ var _ = Describe("DB", func() {
 	Describe("User", func() {
 		It("should put a user idempotently", func() {
 			user := User{
-				UUID: "00000000-0000-0000-0000-000000000001",
+				UUID:  "00000000-0000-0000-0000-000000000001",
+				Email: "example@example.com",
 			}
 
 			Expect(db.PutUser(user)).To(Succeed())
@@ -137,12 +138,23 @@ var _ = Describe("DB", func() {
 
 		It("should fail to put a user without a uuid", func() {
 			user := User{
-				UUID: "",
+				UUID:  "",
+				Email: "example@example.com",
 			}
 
 			err := db.PutUser(user)
 			Expect(err).To(MatchError(ContainSubstring("invalid input syntax for uuid")))
 		})
+
+		// It("should fail to put a user without an email", func() {
+		// 	user := User{
+		// 		UUID:  "00000000-0000-0000-0000-000000000001",
+		// 		Email: "",
+		// 	}
+
+		// 	err := db.PutUser(user)
+		// 	Expect(err).To(MatchError(ContainSubstring("invalid input syntax for email")))
+		// })
 	})
 
 	Describe("Agreement", func() {
@@ -154,7 +166,8 @@ var _ = Describe("DB", func() {
 
 		BeforeEach(func() {
 			user = User{
-				UUID: "00000000-0000-0000-0000-000000000001",
+				UUID:  "00000000-0000-0000-0000-000000000001",
+				Email: "example@example.com",
 			}
 			document = Document{
 				Name:      "document",
@@ -234,7 +247,8 @@ var _ = Describe("DB", func() {
 
 		BeforeEach(func() {
 			user = User{
-				UUID: "00000000-0000-0000-0000-000000000001",
+				UUID:  "00000000-0000-0000-0000-000000000001",
+				Email: "example@example.com",
 			}
 			Expect(db.PutUser(user)).To(Succeed())
 
