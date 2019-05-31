@@ -156,6 +156,34 @@ var _ = Describe("DB", func() {
 			Expect(db.PutUser(user)).To(Succeed())
 		})
 
+		It("should return all users", func() {
+			user := User{
+				UUID:  "00000000-0000-0000-0000-000000000001",
+				Email: "example@example.com",
+			}
+			Expect(db.PutUser(user)).To(Succeed())
+
+			user1 := User{
+				UUID:  "00000000-0000-0000-0000-000000000002",
+				Email: "newexample@example.com",
+			}
+			Expect(db.PutUser(user1)).To(Succeed())
+
+			userlist :=[]string{"00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002"}
+			users, err := db.GetUsersByUUID(userlist)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(users).To(Equal([]User{
+				{
+					UUID:          user.UUID,
+					Email:       user.Email,
+				},
+				{
+					UUID:          user1.UUID,
+					Email:       user1.Email,
+				},
+			}))
+		})
+
 	})
 
 	Describe("Agreement", func() {

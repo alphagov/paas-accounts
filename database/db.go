@@ -12,6 +12,7 @@ import (
 	"github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/lib/pq"
+	"fmt"
 )
 
 type User struct {
@@ -138,6 +139,58 @@ func (db *DB) GetUser(uuid string) (User, error) {
 	}
 
 	return user, err
+}
+
+func (db *DB) GetUserByEmail(email string) (User, error) {
+	user := User{}
+	err := db.conn.QueryRow(`
+		SELECT uuid, email FROM users WHERE email = $1
+	`, email).Scan(&user.UUID, &user.Email)
+
+	if err == sql.ErrNoRows {
+		err = ErrUserNotFound
+	}
+
+	return user, err
+}
+
+func (db *DB) GetUsersByUUID(uuids []string) ([]User, error) {
+
+	users := []User{}
+
+	if len(uuids) == 0 {
+		return users, nil
+	}
+
+	uuidsCopy := make([]interface{}, len(uuids))
+	for i, v := range uuids {
+		uuidsCopy[i] = v
+	}
+
+	var f strings.Builder
+	for i := range uuids {
+		f.WriteString(fmt.Sprintf("$%v,", i+1))
+	}
+	fragment := strings.TrimSuffix(f.String(), ",")
+	query := strings.Replace(`SELECT uuid, email FROM users WHERE uuid IN (uuids)`, "uuids", fragment, -1)
+
+	rows, err := db.conn.Query(query, uuidsCopy...)
+	if err != nil {
+		return users, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var user User
+		err := rows.Scan(&user.UUID, &user.Email)
+		if err != nil {
+			return users, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
 }
 
 func (db *DB) PutAgreement(agreement Agreement) error {

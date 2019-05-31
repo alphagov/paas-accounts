@@ -59,4 +59,32 @@ var _ = Describe("GetUserHandler", func() {
 		Expect(res.Code).To(Equal(http.StatusOK))
 		Expect(res.Header().Get("Content-Type")).To(Equal(echo.MIMEApplicationJSONCharsetUTF8))
 	})
+
+	It("should return an error if the uuid doesn't exist", func() {
+		req := httptest.NewRequest(echo.GET, "/", nil)
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		ctx := echo.New().NewContext(req, res)
+		ctx.SetPath("/users/:uuid")
+		ctx.SetParamNames("uuid")
+		ctx.SetParamValues("00000000-0000-0000-0000-000000000002")
+
+		handler := GetUserHandler(db)
+		Expect(handler(ctx)).ToNot(Succeed())
+		Expect(res.Code).To(Equal(http.StatusOK))
+	})
+
+	It("should return an error if the uuid is incorrect", func() {
+		req := httptest.NewRequest(echo.GET, "/", nil)
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+		ctx := echo.New().NewContext(req, res)
+		ctx.SetPath("/users/:uuid")
+		ctx.SetParamNames("uuid")
+		ctx.SetParamValues("00000000-0000-0000-0000")
+
+		handler := GetUserHandler(db)
+		Expect(handler(ctx)).ToNot(Succeed())
+		Expect(res.Code).To(Equal(http.StatusOK))
+	})
 })
