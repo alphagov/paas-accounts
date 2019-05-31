@@ -146,15 +146,16 @@ var _ = Describe("DB", func() {
 			Expect(err).To(MatchError(ContainSubstring("invalid input syntax for uuid")))
 		})
 
-		// It("should fail to put a user without an email", func() {
-		// 	user := User{
-		// 		UUID:  "00000000-0000-0000-0000-000000000001",
-		// 		Email: "",
-		// 	}
+		It("should update user", func() {
+			user := User{
+				UUID:  "00000000-0000-0000-0000-000000000001",
+				Email: "newexample@example.com",
+			}
 
-		// 	err := db.PutUser(user)
-		// 	Expect(err).To(MatchError(ContainSubstring("invalid input syntax for email")))
-		// })
+			Expect(db.PutUser(user)).To(Succeed())
+			Expect(db.PutUser(user)).To(Succeed())
+		})
+
 	})
 
 	Describe("Agreement", func() {

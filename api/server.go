@@ -35,6 +35,8 @@ func NewServer(config Config) *echo.Echo {
 	e.PUT("/documents/:name", PutDocumentHandler(config.DB))
 	e.GET("/documents/:name", GetDocumentHandler(config.DB))
 	e.GET("/users/:uuid", GetUserHandler(config.DB))
+	e.PUT("/users/:uuid", UserHandler(config.DB))
+	e.PATCH("/users/:uuid", UserHandler(config.DB))
 	e.GET("/users/:uuid/documents", GetUserDocumentsHandler(config.DB))
 
 	e.HTTPErrorHandler = ErrorHandler

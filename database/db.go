@@ -112,7 +112,17 @@ func (db *DB) GetDocument(name string) (Document, error) {
 }
 
 func (db *DB) PutUser(user User) error {
-	_, err := db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2) ON CONFLICT DO NOTHING`, user.UUID, strings.ToLower(user.Email))
+	_, err := db.GetUser(user.UUID)
+	if err == ErrUserNotFound {
+		_, err = db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2)`, user.UUID, strings.ToLower(user.Email))
+	}
+	_, err = db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2) ON CONFLICT (uuid) DO UPDATE SET email=($2)`, user.UUID, strings.ToLower(user.Email))
+
+	return err
+}
+
+func (db *DB) PatchUser(user User) error {
+	_, err := db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2) ON CONFLICT (uuid) DO UPDATE SET email=($2)`, user.UUID, strings.ToLower(user.Email))
 
 	return err
 }
