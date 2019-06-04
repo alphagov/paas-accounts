@@ -121,8 +121,7 @@ func (db *DB) PostUser(user User) error {
 }
 
 func (db *DB) PatchUser(user User) error {
-	_, err := db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2) ON CONFLICT (uuid) DO UPDATE SET email=($2)`, user.UUID, strings.ToLower(user.Email))
-
+	_, err := db.conn.Exec(`UPDATE users SET email= $2 WHERE uuid = $1`, user.UUID, strings.ToLower(user.Email))
 	return err
 }
 
