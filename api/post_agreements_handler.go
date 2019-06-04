@@ -16,11 +16,11 @@ func PostAgreementsHandler(db *database.DB) echo.HandlerFunc {
 			return err
 		}
 
-		err = db.PutUser(database.User{
-			UUID: agreement.UserUUID,
-		})
+		_, err = db.GetUser(c.Param("uuid"))
 		if err != nil {
-			return err
+			db.PostUser(database.User{
+				UUID: agreement.UserUUID,
+			})
 		}
 
 		agreement.Date = time.Now()

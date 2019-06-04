@@ -36,17 +36,17 @@ var _ = Describe("GetUsersHandler", func() {
 			UUID:  "00000000-0000-0000-0000-000000000001",
 			Email: "example1@example.com",
 		}
-		Expect(db.PutUser(user1)).To(Succeed())
+		Expect(db.PostUser(user1)).To(Succeed())
 		user2 = database.User{
 			UUID:  "00000000-0000-0000-0000-000000000002",
 			Email: "example2@example.com",
 		}
-		Expect(db.PutUser(user2)).To(Succeed())
+		Expect(db.PostUser(user2)).To(Succeed())
 		user3 = database.User{
 			UUID:  "00000000-0000-0000-0000-000000000003",
 			Email: "example3@example.com",
 		}
-		Expect(db.PutUser(user3)).To(Succeed())
+		Expect(db.PostUser(user3)).To(Succeed())
 
 	})
 

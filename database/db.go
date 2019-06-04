@@ -112,13 +112,11 @@ func (db *DB) GetDocument(name string) (Document, error) {
 	return doc, err
 }
 
-func (db *DB) PutUser(user User) error {
+func (db *DB) PostUser(user User) error {
 	_, err := db.GetUser(user.UUID)
 	if err == ErrUserNotFound {
 		_, err = db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2)`, user.UUID, strings.ToLower(user.Email))
 	}
-	_, err = db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2) ON CONFLICT (uuid) DO UPDATE SET email=($2)`, user.UUID, strings.ToLower(user.Email))
-
 	return err
 }
 

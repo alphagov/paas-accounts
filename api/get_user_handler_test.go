@@ -33,7 +33,7 @@ var _ = Describe("GetUserHandler", func() {
 			UUID:  "00000000-0000-0000-0000-000000000001",
 			Email: "example@example.com",
 		}
-		Expect(db.PutUser(user)).To(Succeed())
+		Expect(db.PostUser(user)).To(Succeed())
 	})
 
 	AfterEach(func() {
