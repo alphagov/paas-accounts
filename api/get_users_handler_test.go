@@ -57,7 +57,7 @@ var _ = Describe("GetUsersHandler", func() {
 
 	It("should get users by uuids", func() {
 		q := url.Values{
-			"guids": []string{"00000000-0000-0000-0000-000000000001,00000000-0000-0000-0000-000000000002,00000000-0000-0000-0000-000000000003"},
+			"uuids": []string{"00000000-0000-0000-0000-000000000001,00000000-0000-0000-0000-000000000002,00000000-0000-0000-0000-000000000003"},
 		}
 		req := httptest.NewRequest(echo.GET, "/?"+q.Encode(), nil)
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -106,7 +106,7 @@ var _ = Describe("GetUsersHandler", func() {
 		Expect(res.Header().Get("Content-Type")).To(Equal(echo.MIMEApplicationJSONCharsetUTF8))
 	})
 
-	It("should return a 400 if the email or guids query param isn't provided", func() {
+	It("should return a 400 if the email or uuids query param isn't provided", func() {
 		req := httptest.NewRequest(echo.GET, "/", nil)
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		res := httptest.NewRecorder()
@@ -115,7 +115,7 @@ var _ = Describe("GetUsersHandler", func() {
 
 		handler := GetUsersHandler(db)
 		Expect(handler(ctx)).To(Succeed())
-		Expect(res.Body).To(MatchJSON(`"Requires either a guids or email query param"`))
+		Expect(res.Body).To(MatchJSON(`"Requires either a uuids or email query param"`))
 		Expect(res.Code).To(Equal(http.StatusBadRequest))
 		Expect(res.Header().Get("Content-Type")).To(Equal(echo.MIMEApplicationJSONCharsetUTF8))
 	})

@@ -1,6 +1,8 @@
 package api
 
 import (
+	"fmt"
+	uuid "github.com/satori/go.uuid"
 	"net/http"
 	"strings"
 
@@ -11,26 +13,47 @@ import (
 func GetUsersHandler(db *database.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		type Users struct {
-			Users []database.User `json:"users"`
+			Users []*database.User `json:"users"`
 		}
 
 		params := c.QueryParams()
 		users := Users{}
 
-		if len(params["guids"]) > 0 {
-			users.Users, _ = db.GetUsersByUUID(strings.Split(params["guids"][0], ","))
+		if len(params["uuids"]) > 0 && params["uuids"][0] != "" {
+
+			uuids := strings.Split(params["uuids"][0], ",")
+			for _, value := range uuids {
+				_, err := uuid.FromString(value)
+
+				if err != nil {
+					return c.JSON(http.StatusBadRequest, fmt.Sprintf("bad uuid: %s", value))
+				}
+			}
+
+			results, err := db.GetUsersByUUID(strings.Split(params["uuids"][0], ","))
+
+			if err != nil {
+				return c.NoContent(http.StatusInternalServerError)
+			}
+			users.Users = results
 			return c.JSON(http.StatusOK, users)
 		}
 
-		if params.Get("email") != "" {
-			user, err := db.GetUserByEmail(params.Get("email"))
+		email := params.Get("email")
+		if email != "" {
+			user, err := db.GetUserByEmail(email)
 			if err != nil {
+
+				if err == database.ErrUserNotFound {
+					return c.NoContent(http.StatusNotFound)
+				}
+
 				return err
 			}
-			users.Users = append(users.Users, user)
+			users.Users = append(users.Users, &user)
 			return c.JSON(http.StatusOK, users)
 		}
 
-		return c.JSON(http.StatusBadRequest, "Requires either a guids or email query param")
+		return c.JSON(http.StatusBadRequest, "Requires either a uuids or email query param")
 	}
 }

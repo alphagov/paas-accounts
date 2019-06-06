@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"fmt"
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/lib/pq"
-	"fmt"
 )
 
 type User struct {
@@ -151,9 +151,9 @@ func (db *DB) GetUserByEmail(email string) (User, error) {
 	return user, err
 }
 
-func (db *DB) GetUsersByUUID(uuids []string) ([]User, error) {
+func (db *DB) GetUsersByUUID(uuids []string) ([]*User, error) {
 
-	users := []User{}
+	users := []*User{}
 
 	if len(uuids) == 0 {
 		return users, nil
@@ -178,13 +178,26 @@ func (db *DB) GetUsersByUUID(uuids []string) ([]User, error) {
 
 	defer rows.Close()
 
+	// Map UUID strings to user instances
+	uuidToUser := map[string]*User{}
 	for rows.Next() {
 		var user User
 		err := rows.Scan(&user.UUID, &user.Email)
 		if err != nil {
 			return users, err
 		}
-		users = append(users, user)
+		uuidToUser[user.UUID] = &user
+	}
+
+	// Results should be in the same order as input
+	// and if a result wasn't found for an input it
+	// should be mapped to nil
+	for _, uuid := range uuids {
+		if usr, ok := uuidToUser[uuid]; ok {
+			users = append(users, usr)
+		} else {
+			users = append(users, nil)
+		}
 	}
 
 	return users, nil

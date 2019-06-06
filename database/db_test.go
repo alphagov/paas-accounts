@@ -171,7 +171,7 @@ var _ = Describe("DB", func() {
 			userlist := []string{"00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002"}
 			users, err := db.GetUsersByUUID(userlist)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(users).To(Equal([]User{
+			Expect(users).To(Equal([]*User{
 				{
 					UUID:  user.UUID,
 					Email: user.Email,
