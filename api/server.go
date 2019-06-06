@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/alphagov/paas-accounts/database"
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -17,6 +18,14 @@ type Config struct {
 	BasicAuthUsername string
 	BasicAuthPassword string
 	LogWriter         io.Writer
+}
+
+type EchoCustomValidator struct {
+	validator *validator.Validate
+}
+
+func (ecv *EchoCustomValidator) Validate(i interface{}) error {
+	return ecv.validator.Struct(i)
 }
 
 // New creates a new server. Use ListenAndServe to start accepting connections.
@@ -30,13 +39,18 @@ func NewServer(config Config) *echo.Echo {
 		e.Logger.SetOutput(config.LogWriter)
 	}
 
+	e.Validator = &EchoCustomValidator{validator: validator.New()}
+
 	e.GET("/", status)
 	e.POST("/agreements", PostAgreementsHandler(config.DB))
+	e.POST("/agreements/", PostAgreementsHandler(config.DB))
 	e.PUT("/documents/:name", PutDocumentHandler(config.DB))
 	e.GET("/documents/:name", GetDocumentHandler(config.DB))
 	e.GET("/users/:uuid", GetUserHandler(config.DB))
 	e.GET("/users", GetUsersHandler(config.DB))
-	e.POST("/users/:uuid", PostUserHandler(config.DB))
+	e.GET("/users/", GetUsersHandler(config.DB))
+	e.POST("/users", PostUserHandler(config.DB))
+	e.POST("/users/", PostUserHandler(config.DB))
 	e.PATCH("/users/:uuid", PatchUserHandler(config.DB))
 	e.GET("/users/:uuid/documents", GetUserDocumentsHandler(config.DB))
 

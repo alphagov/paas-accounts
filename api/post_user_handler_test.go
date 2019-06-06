@@ -46,10 +46,17 @@ var _ = Describe("PostUserHandler", func() {
 		req := httptest.NewRequest(echo.POST, "/", bytes.NewReader(buf))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		res := httptest.NewRecorder()
-		ctx := echo.New().NewContext(req, res)
-		ctx.SetPath("/users/:uuid")
-		ctx.SetParamNames("uuid")
-		ctx.SetParamValues(user.UUID)
+
+		server := NewServer(Config{
+			DB:                db,
+			BasicAuthUsername: "jeff",
+			BasicAuthPassword: "jefferson",
+			LogWriter:         GinkgoWriter,
+		})
+
+		ctx := server.AcquireContext()
+		ctx.Reset(req, res)
+		ctx.SetPath("/users/")
 
 		handler := PostUserHandler(db)
 		Expect(handler(ctx)).To(Succeed())
@@ -60,5 +67,31 @@ var _ = Describe("PostUserHandler", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(userData.UUID).To(Equal(user.UUID))
 		Expect(userData.Email).To(Equal(user.Email))
+	})
+
+	It("should validate the input payload", func() {
+		payload := `{"user_uuid": "00000000-0000-0000-0000-000000000001", "wrong_email_field": "e@ma.il"}`
+		buf := []byte(payload)
+
+		req := httptest.NewRequest(echo.POST, "/", bytes.NewReader(buf))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		res := httptest.NewRecorder()
+
+		server := NewServer(Config{
+			DB:                db,
+			BasicAuthUsername: "jeff",
+			BasicAuthPassword: "jefferson",
+			LogWriter:         GinkgoWriter,
+		})
+
+		ctx := server.AcquireContext()
+		ctx.Reset(req, res)
+		ctx.SetPath("/users/:uuid")
+		ctx.SetParamNames("uuid")
+		ctx.SetParamValues("00000000-0000-0000-0000-000000000001")
+
+		handler := PostUserHandler(db)
+		Expect(handler(ctx)).To(Succeed())
+		Expect(res.Code).To(Equal(http.StatusBadRequest))
 	})
 })

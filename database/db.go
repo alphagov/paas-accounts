@@ -16,8 +16,8 @@ import (
 )
 
 type User struct {
-	UUID  string `json:"user_uuid"`
-	Email string `json:"user_email"`
+	UUID  string `json:"user_uuid" validate:"uuid"`
+	Email string `json:"user_email" validate:"required,email"`
 }
 
 type Document struct {
