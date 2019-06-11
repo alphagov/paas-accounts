@@ -8,6 +8,14 @@ API for storing information about PaaS users.
 go build -o paas-accounts .
 ```
 
+## Test
+
+```
+make start_postgres_docker
+make test
+make stop_postgres_docker
+```
+
 ## Run
 
 ```
@@ -53,3 +61,31 @@ Get all documents for a user:
 Get all documents for a user that need agreement:
 
     curl -u <USER>:<PASS> -G -d agreed=false https://<HOSTNAME>/users/00000000-0000-0000-0000-000000000001/documents
+
+### GET /users/:uuid
+
+Get a user:
+
+    curl -u <USER>:<PASS> https://<HOSTNAME>/users/00000000-0000-0000-0000-000000000001
+
+### GET /users
+
+Get users by guids (accepts multiple guids):
+
+    curl -u <USER>:<PASS> -G https://<HOSTNAME>/users?guids=00000000-0000-0000-0000-000000000001,00000000-0000-0000-0000-000000000002
+
+Get users by email (accepts a single email address):
+
+    curl -u <USER>:<PASS> -G https://<HOSTNAME>/users?email=example@example.com
+
+### POST /users/:uuid
+
+POST a user:
+
+    curl -u <USER>:<PASS> -H "Content-Type: application/json" -X POST -d '{"user_email": "example@example.com"' https://<HOSTNAME>/users/00000000-0000-0000-0000-000000000001
+
+### PATCH /users/:uuid
+
+PATCH a user:
+
+    curl -u <USER>:<PASS> -H "Content-Type: application/json" -X PUT -d '{"user_email": "newexample@example.com"}' https://<HOSTNAME>/users/00000000-0000-0000-0000-000000000001

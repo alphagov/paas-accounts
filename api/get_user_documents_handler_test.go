@@ -36,7 +36,7 @@ var _ = Describe("GetUserDocumentsHandler", func() {
 		user = database.User{
 			UUID: "00000000-0000-0000-0000-000000000001",
 		}
-		Expect(db.PutUser(user)).To(Succeed())
+		Expect(db.PostUser(user)).To(Succeed())
 
 		documentOne = database.Document{
 			Name:      "document-one",

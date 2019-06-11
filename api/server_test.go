@@ -110,6 +110,9 @@ var _ = Describe("Server", func() {
 		Entry("PUT /documents/:name", "PUT", "/documents/doc-one"),
 		Entry("GET /documents/:name", "GET", "/documents/doc-one"),
 		Entry("GET /users/569a91c6-7f5d-4dac-82a2-db85cc595c75/documents", "GET", "/users/"),
+		Entry("GET /users?guids=569a91c6-7f5d-4dac-82a2-db85cc595c75", "GET", "/users"),
+		Entry("POST /users/", "POST", "/users/"),
+		Entry("PATCH /users/:uuid", "PATCH", "/users/569a91c6-7f5d-4dac-82a2-db85cc595c75"),
 	)
 
 	DescribeTable("should allow access with basic auth credentials",
@@ -129,9 +132,14 @@ var _ = Describe("Server", func() {
 			Expect(res.StatusCode).To(Equal(responseCode))
 		},
 		Entry("POST /agreements", "POST", "/agreements", 500),
+		Entry("POST /agreements/", "POST", "/agreements/", 500),
 		Entry("PUT /documents/:name", "PUT", "/documents/doc-one", 500),
 		Entry("GET /documents/:name", "GET", "/documents/doc-one", 404),
 		Entry("GET /users/:uuid/documents", "GET", "/users/569a91c6-7f5d-4dac-82a2-db85cc595c75/documents", 200),
+		Entry("GET /users", "GET", "/users", 400),
+		Entry("GET /users/", "GET", "/users/", 400),
+		Entry("POST /users/", "POST", "/users/", 400),
+		Entry("PATCH /users/:uuid", "PATCH", "/users/569a91c6-7f5d-4dac-82a2-db85cc595c75", 404),
 	)
 
 	Describe("ErrorHandler", func() {

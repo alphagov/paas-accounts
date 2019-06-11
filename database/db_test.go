@@ -126,23 +126,63 @@ var _ = Describe("DB", func() {
 	})
 
 	Describe("User", func() {
-		It("should put a user idempotently", func() {
+		It("should post a user idempotently", func() {
 			user := User{
-				UUID: "00000000-0000-0000-0000-000000000001",
+				UUID:  "00000000-0000-0000-0000-000000000001",
+				Email: "example@example.com",
 			}
 
-			Expect(db.PutUser(user)).To(Succeed())
-			Expect(db.PutUser(user)).To(Succeed())
+			Expect(db.PostUser(user)).To(Succeed())
+			Expect(db.PostUser(user)).To(Succeed())
 		})
 
-		It("should fail to put a user without a uuid", func() {
+		It("should fail to post a user without a uuid", func() {
 			user := User{
-				UUID: "",
+				UUID:  "",
+				Email: "example@example.com",
 			}
 
-			err := db.PutUser(user)
+			err := db.PostUser(user)
 			Expect(err).To(MatchError(ContainSubstring("invalid input syntax for uuid")))
 		})
+
+		It("should update user", func() {
+			user := User{
+				UUID:  "00000000-0000-0000-0000-000000000001",
+				Email: "newexample@example.com",
+			}
+
+			Expect(db.PatchUser(user)).To(Succeed())
+		})
+
+		It("should return all users", func() {
+			user := User{
+				UUID:  "00000000-0000-0000-0000-000000000001",
+				Email: "example@example.com",
+			}
+			Expect(db.PostUser(user)).To(Succeed())
+
+			user1 := User{
+				UUID:  "00000000-0000-0000-0000-000000000002",
+				Email: "newexample@example.com",
+			}
+			Expect(db.PostUser(user1)).To(Succeed())
+
+			userlist := []string{"00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002"}
+			users, err := db.GetUsersByUUID(userlist)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(users).To(Equal([]*User{
+				{
+					UUID:  user.UUID,
+					Email: user.Email,
+				},
+				{
+					UUID:  user1.UUID,
+					Email: user1.Email,
+				},
+			}))
+		})
+
 	})
 
 	Describe("Agreement", func() {
@@ -154,14 +194,15 @@ var _ = Describe("DB", func() {
 
 		BeforeEach(func() {
 			user = User{
-				UUID: "00000000-0000-0000-0000-000000000001",
+				UUID:  "00000000-0000-0000-0000-000000000001",
+				Email: "example@example.com",
 			}
 			document = Document{
 				Name:      "document",
 				Content:   "some agreement terms",
 				ValidFrom: frozenTime,
 			}
-			Expect(db.PutUser(user)).To(Succeed())
+			Expect(db.PostUser(user)).To(Succeed())
 			Expect(db.PutDocument(document)).To(Succeed())
 		})
 
@@ -234,9 +275,10 @@ var _ = Describe("DB", func() {
 
 		BeforeEach(func() {
 			user = User{
-				UUID: "00000000-0000-0000-0000-000000000001",
+				UUID:  "00000000-0000-0000-0000-000000000001",
+				Email: "example@example.com",
 			}
-			Expect(db.PutUser(user)).To(Succeed())
+			Expect(db.PostUser(user)).To(Succeed())
 
 			documentAgreed = Document{
 				Name:      "document-agreed",

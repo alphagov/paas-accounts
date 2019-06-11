@@ -40,3 +40,7 @@
 [[constraint]]
   name = "github.com/satori/go.uuid"
   version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/go-playground/validator"
+  version = "9.29.0"

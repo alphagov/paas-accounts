@@ -48,7 +48,7 @@ var _ = Describe("PostAgreementsHandler", func() {
 		user := database.User{
 			UUID: "00000000-0000-0000-0000-000000000001",
 		}
-		Expect(db.PutUser(user)).To(Succeed())
+		Expect(db.PostUser(user)).To(Succeed())
 
 		input := database.Agreement{
 			UserUUID:     user.UUID,

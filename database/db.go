@@ -5,8 +5,10 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"fmt"
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
@@ -14,7 +16,8 @@ import (
 )
 
 type User struct {
-	UUID string
+	UUID  string `json:"user_uuid" validate:"uuid"`
+	Email string `json:"user_email" validate:"required,email"`
 }
 
 type Document struct {
@@ -109,23 +112,95 @@ func (db *DB) GetDocument(name string) (Document, error) {
 	return doc, err
 }
 
-func (db *DB) PutUser(user User) error {
-	_, err := db.conn.Exec(`INSERT INTO users (uuid) VALUES ($1) ON CONFLICT DO NOTHING`, user.UUID)
+func (db *DB) PostUser(user User) error {
+	_, err := db.GetUser(user.UUID)
+	if err == ErrUserNotFound {
+		_, err = db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2)`, user.UUID, strings.ToLower(user.Email))
+	}
+	return err
+}
 
+func (db *DB) PatchUser(user User) error {
+	_, err := db.conn.Exec(`UPDATE users SET email= $2 WHERE uuid = $1`, user.UUID, strings.ToLower(user.Email))
 	return err
 }
 
 func (db *DB) GetUser(uuid string) (User, error) {
 	user := User{}
 	err := db.conn.QueryRow(`
-		SELECT uuid FROM users WHERE uuid = $1
-	`, uuid).Scan(&user.UUID)
+		SELECT uuid, email FROM users WHERE uuid = $1
+	`, uuid).Scan(&user.UUID, &user.Email)
 
 	if err == sql.ErrNoRows {
 		err = ErrUserNotFound
 	}
 
 	return user, err
+}
+
+func (db *DB) GetUserByEmail(email string) (User, error) {
+	user := User{}
+	err := db.conn.QueryRow(`
+		SELECT uuid, email FROM users WHERE email = $1
+	`, email).Scan(&user.UUID, &user.Email)
+
+	if err == sql.ErrNoRows {
+		err = ErrUserNotFound
+	}
+
+	return user, err
+}
+
+func (db *DB) GetUsersByUUID(uuids []string) ([]*User, error) {
+
+	users := []*User{}
+
+	if len(uuids) == 0 {
+		return users, nil
+	}
+
+	uuidsCopy := make([]interface{}, len(uuids))
+	for i, v := range uuids {
+		uuidsCopy[i] = v
+	}
+
+	var f strings.Builder
+	for i := range uuids {
+		f.WriteString(fmt.Sprintf("$%v,", i+1))
+	}
+	fragment := strings.TrimSuffix(f.String(), ",")
+	query := strings.Replace(`SELECT uuid, email FROM users WHERE uuid IN (uuids)`, "uuids", fragment, -1)
+
+	rows, err := db.conn.Query(query, uuidsCopy...)
+	if err != nil {
+		return users, err
+	}
+
+	defer rows.Close()
+
+	// Map UUID strings to user instances
+	uuidToUser := map[string]*User{}
+	for rows.Next() {
+		var user User
+		err := rows.Scan(&user.UUID, &user.Email)
+		if err != nil {
+			return users, err
+		}
+		uuidToUser[user.UUID] = &user
+	}
+
+	// Results should be in the same order as input
+	// and if a result wasn't found for an input it
+	// should be mapped to nil
+	for _, uuid := range uuids {
+		if usr, ok := uuidToUser[uuid]; ok {
+			users = append(users, usr)
+		} else {
+			users = append(users, nil)
+		}
+	}
+
+	return users, nil
 }
 
 func (db *DB) PutAgreement(agreement Agreement) error {
