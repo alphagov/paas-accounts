@@ -38,7 +38,7 @@ var _ = Describe("PostUserHandler", func() {
 	It("should add a new user", func() {
 		user := database.User{
 			UUID:  "00000000-0000-0000-0000-000000000001",
-			Email: "example@example.com",
+			Email: strPoint("example@example.com"),
 		}
 
 		buf, err := json.Marshal(user)

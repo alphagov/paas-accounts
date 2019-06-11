@@ -31,7 +31,7 @@ var _ = Describe("GetUserHandler", func() {
 
 		user = database.User{
 			UUID:  "00000000-0000-0000-0000-000000000001",
-			Email: "example@example.com",
+			Email: strPoint("example@example.com"),
 		}
 		Expect(db.PostUser(user)).To(Succeed())
 	})

@@ -129,7 +129,7 @@ var _ = Describe("DB", func() {
 		It("should post a user idempotently", func() {
 			user := User{
 				UUID:  "00000000-0000-0000-0000-000000000001",
-				Email: "example@example.com",
+				Email: strPoint("example@example.com"),
 			}
 
 			Expect(db.PostUser(user)).To(Succeed())
@@ -139,7 +139,7 @@ var _ = Describe("DB", func() {
 		It("should fail to post a user without a uuid", func() {
 			user := User{
 				UUID:  "",
-				Email: "example@example.com",
+				Email: strPoint("example@example.com"),
 			}
 
 			err := db.PostUser(user)
@@ -149,7 +149,7 @@ var _ = Describe("DB", func() {
 		It("should update user", func() {
 			user := User{
 				UUID:  "00000000-0000-0000-0000-000000000001",
-				Email: "newexample@example.com",
+				Email: strPoint("newexample@example.com"),
 			}
 
 			Expect(db.PatchUser(user)).To(Succeed())
@@ -158,13 +158,13 @@ var _ = Describe("DB", func() {
 		It("should return all users", func() {
 			user := User{
 				UUID:  "00000000-0000-0000-0000-000000000001",
-				Email: "example@example.com",
+				Email: strPoint("example@example.com"),
 			}
 			Expect(db.PostUser(user)).To(Succeed())
 
 			user1 := User{
 				UUID:  "00000000-0000-0000-0000-000000000002",
-				Email: "newexample@example.com",
+				Email: strPoint("newexample@example.com"),
 			}
 			Expect(db.PostUser(user1)).To(Succeed())
 
@@ -195,7 +195,7 @@ var _ = Describe("DB", func() {
 		BeforeEach(func() {
 			user = User{
 				UUID:  "00000000-0000-0000-0000-000000000001",
-				Email: "example@example.com",
+				Email: strPoint("example@example.com"),
 			}
 			document = Document{
 				Name:      "document",
@@ -276,7 +276,7 @@ var _ = Describe("DB", func() {
 		BeforeEach(func() {
 			user = User{
 				UUID:  "00000000-0000-0000-0000-000000000001",
-				Email: "example@example.com",
+				Email: strPoint("example@example.com"),
 			}
 			Expect(db.PostUser(user)).To(Succeed())
 
