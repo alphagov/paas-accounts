@@ -31,7 +31,7 @@ var _ = Describe("PatchUserHandler", func() {
 
 		user := database.User{
 			UUID:  "00000000-0000-0000-0000-000000000001",
-			Email: "example@example.com",
+			Email: strPoint("example@example.com"),
 		}
 		Expect(db.PostUser(user)).To(Succeed())
 	})
@@ -44,7 +44,7 @@ var _ = Describe("PatchUserHandler", func() {
 	It("should update an existing user's email", func() {
 		userUUID := "00000000-0000-0000-0000-000000000001"
 		user := database.User{
-			Email: "newexample@example.com",
+			Email: strPoint("newexample@example.com"),
 		}
 
 		buf, err := json.Marshal(user)

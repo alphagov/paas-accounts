@@ -24,7 +24,7 @@ func PostUserHandler(db *database.DB) echo.HandlerFunc {
 			}
 
 			// No two users can have the same email
-			_, err = db.GetUserByEmail(user.Email)
+			_, err = db.GetUserByEmail(*user.Email)
 			if err == nil {
 				return c.NoContent(http.StatusBadRequest)
 			}

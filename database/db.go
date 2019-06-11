@@ -16,8 +16,8 @@ import (
 )
 
 type User struct {
-	UUID  string `json:"user_uuid" validate:"uuid"`
-	Email string `json:"user_email" validate:"required,email"`
+	UUID  string  `json:"user_uuid" validate:"uuid"`
+	Email *string `json:"user_email" validate:"required,email"`
 }
 
 type Document struct {
@@ -115,13 +115,13 @@ func (db *DB) GetDocument(name string) (Document, error) {
 func (db *DB) PostUser(user User) error {
 	_, err := db.GetUser(user.UUID)
 	if err == ErrUserNotFound {
-		_, err = db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2)`, user.UUID, strings.ToLower(user.Email))
+		_, err = db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2)`, user.UUID, lowerStrPoint(user.Email))
 	}
 	return err
 }
 
 func (db *DB) PatchUser(user User) error {
-	_, err := db.conn.Exec(`UPDATE users SET email= $2 WHERE uuid = $1`, user.UUID, strings.ToLower(user.Email))
+	_, err := db.conn.Exec(`UPDATE users SET email= $2 WHERE uuid = $1`, user.UUID, lowerStrPoint(user.Email))
 	return err
 }
 
@@ -292,4 +292,13 @@ func (db *DB) GetAgreementsForUserUUID(uuid string) ([]Agreement, error) {
 
 func (db *DB) Ping() error {
 	return db.conn.Ping()
+}
+
+func lowerStrPoint(str *string) *string {
+	if str == nil {
+		return nil
+	}
+
+	lower := strings.ToLower(*str)
+	return &lower
 }
