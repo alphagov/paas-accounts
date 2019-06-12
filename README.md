@@ -88,4 +88,4 @@ POST a user:
 
 PATCH a user:
 
-    curl -u <USER>:<PASS> -H "Content-Type: application/json" -X PUT -d '{"user_email": "newexample@example.com"}' https://<HOSTNAME>/users/00000000-0000-0000-0000-000000000001
+    curl -u <USER>:<PASS> -H "Content-Type: application/json" -X PATCH -d '{"user_email": "newexample@example.com"}' https://<HOSTNAME>/users/00000000-0000-0000-0000-000000000001

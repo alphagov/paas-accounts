@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"fmt"
+
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
@@ -17,7 +18,7 @@ import (
 
 type User struct {
 	UUID  string  `json:"user_uuid" validate:"uuid"`
-	Email *string `json:"user_email" validate:"required,email"`
+	Email *string `json:"user_email" validate:"required"`
 }
 
 type Document struct {
