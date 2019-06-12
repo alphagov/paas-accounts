@@ -139,7 +139,7 @@ var _ = Describe("Server", func() {
 		Entry("GET /users", "GET", "/users", 400),
 		Entry("GET /users/", "GET", "/users/", 400),
 		Entry("POST /users/", "POST", "/users/", 400),
-		Entry("PATCH /users/:uuid", "PATCH", "/users/569a91c6-7f5d-4dac-82a2-db85cc595c75", 404),
+		Entry("PATCH /users/:uuid", "PATCH", "/users/569a91c6-7f5d-4dac-82a2-db85cc595c75", 400),
 	)
 
 	Describe("ErrorHandler", func() {
