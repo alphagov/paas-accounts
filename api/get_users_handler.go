@@ -41,7 +41,7 @@ func GetUsersHandler(db *database.DB) echo.HandlerFunc {
 
 		email := params.Get("email")
 		if email != "" {
-			user, err := db.GetUserByEmail(email)
+			dbUsers, err := db.GetUserByEmail(email)
 			if err != nil {
 
 				if err == database.ErrUserNotFound {
@@ -50,7 +50,12 @@ func GetUsersHandler(db *database.DB) echo.HandlerFunc {
 
 				return err
 			}
-			users.Users = append(users.Users, &user)
+
+			if len(dbUsers) > 0 {
+				users.Users = dbUsers
+			} else {
+				users.Users = []*database.User{}
+			}
 			return c.JSON(http.StatusOK, users)
 		}
 

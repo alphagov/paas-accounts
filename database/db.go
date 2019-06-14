@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"fmt"
+
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
@@ -16,8 +17,9 @@ import (
 )
 
 type User struct {
-	UUID  string  `json:"user_uuid" validate:"uuid"`
-	Email *string `json:"user_email" validate:"required,email"`
+	UUID     string  `json:"user_uuid" validate:"uuid"`
+	Email    *string `json:"user_email" validate:"omitempty,email"`
+	Username *string `json:"username" validate:"required,min=1"`
 }
 
 type Document struct {
@@ -115,21 +117,21 @@ func (db *DB) GetDocument(name string) (Document, error) {
 func (db *DB) PostUser(user User) error {
 	_, err := db.GetUser(user.UUID)
 	if err == ErrUserNotFound {
-		_, err = db.conn.Exec(`INSERT INTO users (uuid, email) VALUES ($1, $2)`, user.UUID, lowerStrPoint(user.Email))
+		_, err = db.conn.Exec(`INSERT INTO users (uuid, email, username) VALUES ($1, $2, $3)`, user.UUID, lowerStrPoint(user.Email), user.Username)
 	}
 	return err
 }
 
 func (db *DB) PatchUser(user User) error {
-	_, err := db.conn.Exec(`UPDATE users SET email= $2 WHERE uuid = $1`, user.UUID, lowerStrPoint(user.Email))
+	_, err := db.conn.Exec(`UPDATE users SET email = $2, username = $3 WHERE uuid = $1`, user.UUID, lowerStrPoint(user.Email), user.Username)
 	return err
 }
 
 func (db *DB) GetUser(uuid string) (User, error) {
 	user := User{}
 	err := db.conn.QueryRow(`
-		SELECT uuid, email FROM users WHERE uuid = $1
-	`, uuid).Scan(&user.UUID, &user.Email)
+		SELECT uuid, email, username FROM users WHERE uuid = $1
+	`, uuid).Scan(&user.UUID, &user.Email, &user.Username)
 
 	if err == sql.ErrNoRows {
 		err = ErrUserNotFound
@@ -138,11 +140,40 @@ func (db *DB) GetUser(uuid string) (User, error) {
 	return user, err
 }
 
-func (db *DB) GetUserByEmail(email string) (User, error) {
+func (db *DB) GetUserByEmail(email string) ([]*User, error) {
+	var users []*User
+	rows, err := db.conn.Query(`
+		SELECT uuid, email, username FROM users WHERE email = $1
+	`, email)
+
+	defer rows.Close()
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return users, nil
+		}
+
+		return users, err
+	}
+
+	for rows.Next() {
+		var user User
+		err := rows.Scan(&user.UUID, &user.Email, &user.Username)
+		if err != nil {
+			return users, err
+		}
+
+		users = append(users, &user)
+	}
+
+	return users, err
+}
+
+func (db *DB) GetUserByUsername(username string) (User, error) {
 	user := User{}
 	err := db.conn.QueryRow(`
-		SELECT uuid, email FROM users WHERE email = $1
-	`, email).Scan(&user.UUID, &user.Email)
+		SELECT uuid, email, username FROM users WHERE username = $1
+	`, username).Scan(&user.UUID, &user.Email, &user.Username)
 
 	if err == sql.ErrNoRows {
 		err = ErrUserNotFound
@@ -169,7 +200,7 @@ func (db *DB) GetUsersByUUID(uuids []string) ([]*User, error) {
 		f.WriteString(fmt.Sprintf("$%v,", i+1))
 	}
 	fragment := strings.TrimSuffix(f.String(), ",")
-	query := strings.Replace(`SELECT uuid, email FROM users WHERE uuid IN (uuids)`, "uuids", fragment, -1)
+	query := strings.Replace(`SELECT uuid, email, username FROM users WHERE uuid IN (uuids)`, "uuids", fragment, -1)
 
 	rows, err := db.conn.Query(query, uuidsCopy...)
 	if err != nil {
@@ -182,7 +213,7 @@ func (db *DB) GetUsersByUUID(uuids []string) ([]*User, error) {
 	uuidToUser := map[string]*User{}
 	for rows.Next() {
 		var user User
-		err := rows.Scan(&user.UUID, &user.Email)
+		err := rows.Scan(&user.UUID, &user.Email, &user.Username)
 		if err != nil {
 			return users, err
 		}

@@ -23,16 +23,15 @@ func PostUserHandler(db *database.DB) echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, s)
 			}
 
-			// No two users can have the same email
-			_, err = db.GetUserByEmail(*user.Email)
+			// No two users can have the same username
+			_, err = db.GetUserByUsername(*user.Username)
 			if err == nil {
 				return c.NoContent(http.StatusBadRequest)
 			}
 
 			_, err = db.GetUser(user.UUID)
 			if err == nil {
-				// Return a 201 so we're not leaking what does and doesn't exist
-				return c.NoContent(http.StatusCreated)
+				return c.NoContent(http.StatusConflict)
 			}
 
 			err = db.PostUser(user)
@@ -40,6 +39,11 @@ func PostUserHandler(db *database.DB) echo.HandlerFunc {
 				return err
 			}
 
-			return c.NoContent(http.StatusCreated)
+			createdUser, err := db.GetUser(user.UUID)
+			if err != nil {
+				return err
+			}
+
+			return c.JSON(http.StatusCreated, createdUser)
 	}
 }

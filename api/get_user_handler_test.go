@@ -30,8 +30,9 @@ var _ = Describe("GetUserHandler", func() {
 		Expect(db.Init()).To(Succeed())
 
 		user = database.User{
-			UUID:  "00000000-0000-0000-0000-000000000001",
-			Email: strPoint("example@example.com"),
+			UUID:     "00000000-0000-0000-0000-000000000001",
+			Email:    strPoint("example@example.com"),
+			Username: strPoint("example@example.com"),
 		}
 		Expect(db.PostUser(user)).To(Succeed())
 	})
@@ -54,7 +55,8 @@ var _ = Describe("GetUserHandler", func() {
 		Expect(handler(ctx)).To(Succeed())
 		Expect(res.Body).To(MatchJSON(`{
 				"user_uuid": "00000000-0000-0000-0000-000000000001",
-				"user_email": "example@example.com"
+				"user_email": "example@example.com",
+				"username": "example@example.com"
 			}`))
 		Expect(res.Code).To(Equal(http.StatusOK))
 		Expect(res.Header().Get("Content-Type")).To(Equal(echo.MIMEApplicationJSONCharsetUTF8))

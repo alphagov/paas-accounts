@@ -33,18 +33,21 @@ var _ = Describe("GetUsersHandler", func() {
 		Expect(db.Init()).To(Succeed())
 
 		user1 = database.User{
-			UUID:  "00000000-0000-0000-0000-000000000001",
-			Email: strPoint("example1@example.com"),
+			UUID:     "00000000-0000-0000-0000-000000000001",
+			Email:    strPoint("example1@example.com"),
+			Username: strPoint("example1@example.com"),
 		}
 		Expect(db.PostUser(user1)).To(Succeed())
 		user2 = database.User{
-			UUID:  "00000000-0000-0000-0000-000000000002",
-			Email: strPoint("example2@example.com"),
+			UUID:     "00000000-0000-0000-0000-000000000002",
+			Email:    strPoint("example2@example.com"),
+			Username: strPoint("example2@example.com"),
 		}
 		Expect(db.PostUser(user2)).To(Succeed())
 		user3 = database.User{
-			UUID:  "00000000-0000-0000-0000-000000000003",
-			Email: strPoint("example3@example.com"),
+			UUID:     "00000000-0000-0000-0000-000000000003",
+			Email:    strPoint("example3@example.com"),
+			Username: strPoint("example3@example.com"),
 		}
 		Expect(db.PostUser(user3)).To(Succeed())
 
@@ -70,15 +73,18 @@ var _ = Describe("GetUsersHandler", func() {
 		Expect(res.Body).To(MatchJSON(`{
 			"users": [{
 				"user_uuid": "00000000-0000-0000-0000-000000000001",
-				"user_email": "example1@example.com"
+				"user_email": "example1@example.com",
+				"username": "example1@example.com"
 			},
 			{
 				"user_uuid": "00000000-0000-0000-0000-000000000002",
-				"user_email": "example2@example.com"
+				"user_email": "example2@example.com",
+				"username": "example2@example.com"
 			},
 			{
 				"user_uuid": "00000000-0000-0000-0000-000000000003",
-				"user_email": "example3@example.com"
+				"user_email": "example3@example.com",
+				"username": "example3@example.com"
 			}]
 		  }`))
 		Expect(res.Code).To(Equal(http.StatusOK))
@@ -99,7 +105,8 @@ var _ = Describe("GetUsersHandler", func() {
 		Expect(res.Body).To(MatchJSON(`{
 			"users": [{
 				"user_uuid": "00000000-0000-0000-0000-000000000003",
-				"user_email": "example3@example.com"
+				"user_email": "example3@example.com",
+				"username": "example3@example.com"
 			}]
 		  }`))
 		Expect(res.Code).To(Equal(http.StatusOK))
