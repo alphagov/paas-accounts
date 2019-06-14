@@ -3,6 +3,7 @@ package api_test
 import (
 	"context"
 	"errors"
+	"github.com/go-playground/validator"
 	"io"
 	"io/ioutil"
 	"net"
@@ -103,7 +104,7 @@ var _ = Describe("Server", func() {
 			b, err := ioutil.ReadAll(res.Body)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(string(b)).To(MatchJSON(`{
-				"message": "Unauthorized"
+				"Message": "Unauthorized"
 			}`))
 		},
 		Entry("POST /agreements", "POST", "/agreements"),
@@ -156,12 +157,78 @@ var _ = Describe("Server", func() {
 			err := errors.New("BANG")
 			ErrorHandler(err, ctx)
 			Expect(res.Body).To(MatchJSON(`{
-				"message": "` + err.Error() + `"
+				"Message": "` + err.Error() + `"
 			}`))
 			Expect(res.Code).To(Equal(http.StatusInternalServerError))
 			Expect(res.Header().Get("Content-Type")).To(Equal(echo.MIMEApplicationJSONCharsetUTF8))
 		})
 
+		It("should return a NotFoundError as a 404", func() {
+			req := httptest.NewRequest(echo.GET, "/", nil)
+			res := httptest.NewRecorder()
+
+			e := echo.New()
+			e.Logger.SetOutput(GinkgoWriter)
+
+			ctx := e.NewContext(req, res)
+			ctx.SetPath("/")
+
+			err := NotFoundError{Message: "I was not found"}
+			ErrorHandler(err, ctx)
+			Expect(res.Body).To(MatchJSON(`{
+				"Message": "`+ err.Error() +`"
+			}`))
+			Expect(res.Code).To(Equal(http.StatusNotFound))
+			Expect(res.Header().Get("Content-Type")).To(Equal(echo.MIMEApplicationJSONCharsetUTF8))
+		})
+
+		It("should return an InternalServerError as a 500", func() {
+			req := httptest.NewRequest(echo.GET, "/", nil)
+			res := httptest.NewRecorder()
+
+			e := echo.New()
+			e.Logger.SetOutput(GinkgoWriter)
+
+			ctx := e.NewContext(req, res)
+			ctx.SetPath("/")
+
+			err := InternalServerError{InternalError: errors.New("internal error")}
+			ErrorHandler(err, ctx)
+			Expect(res.Code).To(Equal(http.StatusInternalServerError))
+		})
+
+		It("should return a ValidationError as a 400", func(){
+			req := httptest.NewRequest(echo.GET, "/", nil)
+			res := httptest.NewRecorder()
+
+			e := echo.New()
+			e.Logger.SetOutput(GinkgoWriter)
+
+			ctx := e.NewContext(req, res)
+			ctx.SetPath("/")
+
+			type validatable struct {
+				Message string `validate:"required"`
+			}
+
+			instance := validatable{ Message: "" }
+			validatorInstance := validator.New()
+			errors := validatorInstance.Struct(instance)
+
+			Expect(errors).To(BeAssignableToTypeOf(validator.ValidationErrors{}))
+
+			err := ValidationError{ ValidationErrors: errors.(validator.ValidationErrors) }
+			ErrorHandler(err, ctx)
+			Expect(res.Code).To(Equal(http.StatusBadRequest))
+			Expect(res.Body).To(MatchJSON(`{
+				"ValidationErrors": [
+					{
+						"Field": "Message",
+						"Error": "required"
+					}
+				]
+			}`))
+		})
 	})
 
 })

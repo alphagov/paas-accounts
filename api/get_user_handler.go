@@ -12,9 +12,9 @@ func GetUserHandler(db *database.DB) echo.HandlerFunc {
 		user, err := db.GetUser(c.Param("uuid"))
 		if err != nil {
 			if err == database.ErrUserNotFound {
-				return c.NoContent(http.StatusNotFound)
+				return NotFoundError{"user not found"}
 			}
-			return err
+			return InternalServerError{err}
 		}
 
 		return c.JSON(http.StatusOK, user)

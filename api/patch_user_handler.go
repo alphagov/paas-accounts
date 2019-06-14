@@ -1,12 +1,10 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/go-playground/validator"
-
 	"github.com/alphagov/paas-accounts/database"
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
 )
 
@@ -15,28 +13,29 @@ type PatchRequest struct {
 	Username string  `json:"username" validate:"required"`
 }
 
+var userNotFoundError = NotFoundError{"user not found"}
+
 func PatchUserHandler(db *database.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var payload PatchRequest
 		err := c.Bind(&payload)
 		if err != nil {
-			return err
+			return InternalServerError{err}
 		}
 
 		err = c.Validate(payload)
 		if err != nil {
 			valerr := err.(validator.ValidationErrors)
-			s := fmt.Sprint(valerr)
-			return c.JSON(http.StatusBadRequest, s)
+			return ValidationError{valerr}
 		}
 
 		user, err := db.GetUser(c.Param("uuid"))
 		if err != nil {
 			if err == database.ErrUserNotFound {
-				return c.JSON(http.StatusNotFound, err)
+				return userNotFoundError
 			}
 
-			return err
+			return InternalServerError{err}
 		}
 
 		if user.Username == nil {
@@ -47,12 +46,16 @@ func PatchUserHandler(db *database.DB) echo.HandlerFunc {
 
 		err = db.PatchUser(user)
 		if err != nil {
-			return err
+			return InternalServerError{err}
 		}
 
 		updateduser, err := db.GetUser(c.Param("uuid"))
 		if err != nil {
-			return err
+			if err == database.ErrUserNotFound {
+				return userNotFoundError
+			}
+
+			return InternalServerError{err}
 		}
 
 		return c.JSON(http.StatusAccepted, updateduser)

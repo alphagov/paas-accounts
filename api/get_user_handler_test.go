@@ -72,8 +72,7 @@ var _ = Describe("GetUserHandler", func() {
 		ctx.SetParamValues("00000000-0000-0000-0000-000000000002")
 
 		handler := GetUserHandler(db)
-		Expect(handler(ctx)).To(Succeed())
-		Expect(res.Code).To(Equal(http.StatusNotFound))
+		Expect(handler(ctx)).To(BeAssignableToTypeOf(NotFoundError{}))
 	})
 
 	It("should return an error if the uuid is incorrect", func() {
@@ -86,7 +85,6 @@ var _ = Describe("GetUserHandler", func() {
 		ctx.SetParamValues("00000000-0000-0000-0000")
 
 		handler := GetUserHandler(db)
-		Expect(handler(ctx)).ToNot(Succeed())
-		Expect(res.Code).To(Equal(http.StatusOK))
+		Expect(handler(ctx)).To(BeAssignableToTypeOf(InternalServerError{}))
 	})
 })

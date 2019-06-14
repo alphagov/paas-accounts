@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -57,22 +56,6 @@ func NewServer(config Config) *echo.Echo {
 	e.HTTPErrorHandler = ErrorHandler
 
 	return e
-}
-
-func ErrorHandler(err error, c echo.Context) {
-	code := http.StatusInternalServerError
-	msg := err.Error()
-	if he, ok := err.(*echo.HTTPError); ok {
-		code = he.Code
-		msg = fmt.Sprintf("%v", he.Message)
-	}
-	errJSON := struct {
-		Message string `json:"message"`
-	}{
-		Message: msg,
-	}
-	c.Logger().Error(err)
-	c.JSON(code, errJSON)
 }
 
 func status(c echo.Context) error {

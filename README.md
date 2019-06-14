@@ -72,20 +72,42 @@ Get a user:
 
 Get users by guids (accepts multiple guids):
 
-    curl -u <USER>:<PASS> -G https://<HOSTNAME>/users?guids=00000000-0000-0000-0000-000000000001,00000000-0000-0000-0000-000000000002
+    curl -u <USER>:<PASS> -G https://<HOSTNAME>/users?uuids=00000000-0000-0000-0000-000000000001,00000000-0000-0000-0000-000000000002
 
 Get users by email (accepts a single email address):
 
-    curl -u <USER>:<PASS> -G https://<HOSTNAME>/users?email=example@example.com
+    curl -u <USER>:<PASS> -G https://<HOSTNAME>/users?email=example%40example.com
 
 ### POST /users/:uuid
 
 POST a user:
 
-    curl -u <USER>:<PASS> -H "Content-Type: application/json" -X POST -d '{"user_email": "example@example.com"' https://<HOSTNAME>/users/00000000-0000-0000-0000-000000000001
+    curl -u <USER>:<PASS> -H "Content-Type: application/json" -X POST -d '{"user_email": "example@example.com", "username": "example@example.com", "user_uuid": "00000000-0000-0000-0000-000000000001"}' https://<HOSTNAME>/users/00000000-0000-0000-0000-000000000001
 
 ### PATCH /users/:uuid
 
 PATCH a user:
 
-    curl -u <USER>:<PASS> -H "Content-Type: application/json" -X PUT -d '{"user_email": "newexample@example.com"}' https://<HOSTNAME>/users/00000000-0000-0000-0000-000000000001
+    curl -u <USER>:<PASS> -H "Content-Type: application/json" -X PATCH -d '{"user_email": "newexample@example.com"}' https://<HOSTNAME>/users/00000000-0000-0000-0000-000000000001
+
+### Error handling
+To handle an error in a handler function, such as an entity not being found or an internal server error, return one of the error types from `api/errors.go`
+
+```go
+func HttpHandler(db *database.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		thing, err := db.GetAThing(c.Param("id"))
+		
+		if err != nil {
+			if err == database.ErrNotFound {
+				return NotFoundError{"thing not found"}
+			}
+			
+			return InternalServerError{err}
+		}
+		
+		return c.JSON(http.StatusOK, thing)
+	}
+	
+}
+```
