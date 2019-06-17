@@ -111,7 +111,7 @@ var _ = Describe("Server", func() {
 		Entry("PUT /documents/:name", "PUT", "/documents/doc-one"),
 		Entry("GET /documents/:name", "GET", "/documents/doc-one"),
 		Entry("GET /users/569a91c6-7f5d-4dac-82a2-db85cc595c75/documents", "GET", "/users/"),
-		Entry("GET /users?guids=569a91c6-7f5d-4dac-82a2-db85cc595c75", "GET", "/users"),
+		Entry("GET /users?uuids=569a91c6-7f5d-4dac-82a2-db85cc595c75", "GET", "/users"),
 		Entry("POST /users/", "POST", "/users/"),
 		Entry("PATCH /users/:uuid", "PATCH", "/users/569a91c6-7f5d-4dac-82a2-db85cc595c75"),
 	)
