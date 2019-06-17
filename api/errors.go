@@ -33,16 +33,16 @@ func (err ValidationError) Error() string {
 }
 
 type messageErrorBody struct {
-	Message string `json:"Message"`
+	Message string `json:"message"`
 }
 
 type validationErrorsBody struct {
-	ValidationErrors []fieldValidationError `json:"ValidationErrors"`
+	ValidationErrors []fieldValidationError `json:"validation-errors"`
 }
 
 type fieldValidationError struct {
-	Field string `json:"Field"`
-	Error string `json:"Error"`
+	Field string `json:"field"`
+	Error string `json:"error"`
 }
 
 func ErrorHandler(err error, ctx echo.Context) {

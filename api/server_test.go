@@ -104,7 +104,7 @@ var _ = Describe("Server", func() {
 			b, err := ioutil.ReadAll(res.Body)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(string(b)).To(MatchJSON(`{
-				"Message": "Unauthorized"
+				"message": "Unauthorized"
 			}`))
 		},
 		Entry("POST /agreements", "POST", "/agreements"),
@@ -166,7 +166,7 @@ var _ = Describe("Server", func() {
 			err := errors.New("BANG")
 			ErrorHandler(err, ctx)
 			Expect(res.Body).To(MatchJSON(`{
-				"Message": "` + err.Error() + `"
+				"message": "` + err.Error() + `"
 			}`))
 			Expect(res.Code).To(Equal(http.StatusInternalServerError))
 			Expect(res.Header().Get("Content-Type")).To(Equal(echo.MIMEApplicationJSONCharsetUTF8))
@@ -176,7 +176,7 @@ var _ = Describe("Server", func() {
 			err := NotFoundError{Message: "I was not found"}
 			ErrorHandler(err, ctx)
 			Expect(res.Body).To(MatchJSON(`{
-				"Message": "` + err.Error() + `"
+				"message": "` + err.Error() + `"
 			}`))
 			Expect(res.Code).To(Equal(http.StatusNotFound))
 			Expect(res.Header().Get("Content-Type")).To(Equal(echo.MIMEApplicationJSONCharsetUTF8))
@@ -203,10 +203,10 @@ var _ = Describe("Server", func() {
 			ErrorHandler(err, ctx)
 			Expect(res.Code).To(Equal(http.StatusBadRequest))
 			Expect(res.Body).To(MatchJSON(`{
-				"ValidationErrors": [
+				"validation-errors": [
 					{
-						"Field": "Message",
-						"Error": "required"
+						"field": "Message",
+						"error": "required"
 					}
 				]
 			}`))
