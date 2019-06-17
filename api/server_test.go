@@ -144,16 +144,25 @@ var _ = Describe("Server", func() {
 	)
 
 	Describe("ErrorHandler", func() {
-		It("should return all errors as json", func() {
-			req := httptest.NewRequest(echo.GET, "/", nil)
-			res := httptest.NewRecorder()
+		var (
+			req *http.Request
+			res *httptest.ResponseRecorder
+			e   *echo.Echo
+			ctx echo.Context
+		)
 
-			e := echo.New()
+		BeforeEach(func() {
+			req = httptest.NewRequest(echo.GET, "/", nil)
+			res = httptest.NewRecorder()
+
+			e = echo.New()
 			e.Logger.SetOutput(GinkgoWriter)
 
-			ctx := e.NewContext(req, res)
+			ctx = e.NewContext(req, res)
 			ctx.SetPath("/")
+		})
 
+		It("should return all errors as json", func() {
 			err := errors.New("BANG")
 			ErrorHandler(err, ctx)
 			Expect(res.Body).To(MatchJSON(`{
@@ -164,60 +173,33 @@ var _ = Describe("Server", func() {
 		})
 
 		It("should return a NotFoundError as a 404", func() {
-			req := httptest.NewRequest(echo.GET, "/", nil)
-			res := httptest.NewRecorder()
-
-			e := echo.New()
-			e.Logger.SetOutput(GinkgoWriter)
-
-			ctx := e.NewContext(req, res)
-			ctx.SetPath("/")
-
 			err := NotFoundError{Message: "I was not found"}
 			ErrorHandler(err, ctx)
 			Expect(res.Body).To(MatchJSON(`{
-				"Message": "`+ err.Error() +`"
+				"Message": "` + err.Error() + `"
 			}`))
 			Expect(res.Code).To(Equal(http.StatusNotFound))
 			Expect(res.Header().Get("Content-Type")).To(Equal(echo.MIMEApplicationJSONCharsetUTF8))
 		})
 
 		It("should return an InternalServerError as a 500", func() {
-			req := httptest.NewRequest(echo.GET, "/", nil)
-			res := httptest.NewRecorder()
-
-			e := echo.New()
-			e.Logger.SetOutput(GinkgoWriter)
-
-			ctx := e.NewContext(req, res)
-			ctx.SetPath("/")
-
 			err := InternalServerError{InternalError: errors.New("internal error")}
 			ErrorHandler(err, ctx)
 			Expect(res.Code).To(Equal(http.StatusInternalServerError))
 		})
 
-		It("should return a ValidationError as a 400", func(){
-			req := httptest.NewRequest(echo.GET, "/", nil)
-			res := httptest.NewRecorder()
-
-			e := echo.New()
-			e.Logger.SetOutput(GinkgoWriter)
-
-			ctx := e.NewContext(req, res)
-			ctx.SetPath("/")
-
+		It("should return a ValidationError as a 400", func() {
 			type validatable struct {
 				Message string `validate:"required"`
 			}
 
-			instance := validatable{ Message: "" }
+			instance := validatable{Message: ""}
 			validatorInstance := validator.New()
 			errors := validatorInstance.Struct(instance)
 
 			Expect(errors).To(BeAssignableToTypeOf(validator.ValidationErrors{}))
 
-			err := ValidationError{ ValidationErrors: errors.(validator.ValidationErrors) }
+			err := ValidationError{ValidationErrors: errors.(validator.ValidationErrors)}
 			ErrorHandler(err, ctx)
 			Expect(res.Code).To(Equal(http.StatusBadRequest))
 			Expect(res.Body).To(MatchJSON(`{
