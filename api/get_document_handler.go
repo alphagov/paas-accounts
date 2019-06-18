@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-var ErrDocumentNotFound = echo.NewHTTPError(http.StatusNotFound, "document not found")
+var ErrDocumentNotFound = NotFoundError{"document not found"}
 
 func GetDocumentHandler(db *database.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -15,7 +15,7 @@ func GetDocumentHandler(db *database.DB) echo.HandlerFunc {
 		if err == database.ErrDocumentNotFound {
 			return ErrDocumentNotFound
 		} else if err != nil {
-			return err
+			return InternalServerError{err}
 		}
 
 		return c.JSON(http.StatusOK, document)

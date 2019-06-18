@@ -13,14 +13,14 @@ func PutDocumentHandler(db *database.DB) echo.HandlerFunc {
 		var document database.Document
 		err := c.Bind(&document)
 		if err != nil {
-			return err
+			return InternalServerError{err}
 		}
 
 		document.Name = c.Param("name")
 		document.ValidFrom = time.Now()
 		err = db.PutDocument(document)
 		if err != nil {
-			return err
+			return InternalServerError{err}
 		}
 
 		return c.NoContent(http.StatusCreated)

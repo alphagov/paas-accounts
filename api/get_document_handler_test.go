@@ -72,6 +72,6 @@ var _ = Describe("GetDocumentHandler", func() {
 		ctx.SetParamValues("one")
 
 		handler := GetDocumentHandler(db)
-		Expect(handler(ctx)).To(Equal(ErrDocumentNotFound))
+		Expect(handler(ctx)).To(BeAssignableToTypeOf(NotFoundError{}))
 	})
 })

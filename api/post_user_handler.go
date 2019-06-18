@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"github.com/alphagov/paas-accounts/database"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
@@ -13,14 +12,13 @@ func PostUserHandler(db *database.DB) echo.HandlerFunc {
 			var user database.User
 			err := c.Bind(&user)
 			if err != nil {
-				return err
+				return InternalServerError{err}
 			}
 
 			err = c.Validate(user)
 			if err != nil {
 				valerr := err.(validator.ValidationErrors)
-				s := fmt.Sprint(valerr)
-				return c.JSON(http.StatusBadRequest, s)
+				return ValidationError{valerr}
 			}
 
 			// No two users can have the same username
@@ -34,14 +32,18 @@ func PostUserHandler(db *database.DB) echo.HandlerFunc {
 				return c.NoContent(http.StatusConflict)
 			}
 
+			if err != database.ErrUserNotFound {
+				return InternalServerError{err}
+			}
+
 			err = db.PostUser(user)
 			if err != nil {
-				return err
+				return InternalServerError{err}
 			}
 
 			createdUser, err := db.GetUser(user.UUID)
 			if err != nil {
-				return err
+				return InternalServerError{err}
 			}
 
 			return c.JSON(http.StatusCreated, createdUser)

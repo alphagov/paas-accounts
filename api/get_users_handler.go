@@ -33,7 +33,7 @@ func GetUsersHandler(db *database.DB) echo.HandlerFunc {
 			results, err := db.GetUsersByUUID(strings.Split(params["uuids"][0], ","))
 
 			if err != nil {
-				return c.NoContent(http.StatusInternalServerError)
+				return InternalServerError{err}
 			}
 			users.Users = results
 			return c.JSON(http.StatusOK, users)
@@ -45,10 +45,10 @@ func GetUsersHandler(db *database.DB) echo.HandlerFunc {
 			if err != nil {
 
 				if err == database.ErrUserNotFound {
-					return c.NoContent(http.StatusNotFound)
+					return NotFoundError{"user not found"}
 				}
 
-				return err
+				return InternalServerError{err}
 			}
 
 			if len(dbUsers) > 0 {

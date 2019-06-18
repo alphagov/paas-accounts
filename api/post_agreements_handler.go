@@ -13,7 +13,7 @@ func PostAgreementsHandler(db *database.DB) echo.HandlerFunc {
 		var agreement database.Agreement
 		err := c.Bind(&agreement)
 		if err != nil {
-			return err
+			return InternalServerError{err}
 		}
 
 		_, err = db.GetUser(agreement.UserUUID)
@@ -23,14 +23,14 @@ func PostAgreementsHandler(db *database.DB) echo.HandlerFunc {
 			})
 
 			if err != nil {
-				return err
+				return InternalServerError{err}
 			}
 		}
 
 		agreement.Date = time.Now()
 		err = db.PutAgreement(agreement)
 		if err != nil {
-			return err
+			return InternalServerError{err}
 		}
 
 		return c.NoContent(http.StatusCreated)

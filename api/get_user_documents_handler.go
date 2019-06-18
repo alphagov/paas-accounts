@@ -11,7 +11,7 @@ func GetUserDocumentsHandler(db *database.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		allDocuments, err := db.GetDocumentsForUserUUID(c.Param("uuid"))
 		if err != nil {
-			return err
+			return InternalServerError{err}
 		}
 
 		onlyUnagreed := c.QueryParam("agreed") == "false"

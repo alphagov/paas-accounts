@@ -105,8 +105,7 @@ var _ = Describe("PostUserHandler", func() {
 		ctx.SetParamValues("00000000-0000-0000-0000-000000000001")
 
 		handler := PostUserHandler(db)
-		Expect(handler(ctx)).To(Succeed())
-		Expect(res.Code).To(Equal(http.StatusBadRequest))
+		Expect(handler(ctx)).To(BeAssignableToTypeOf(ValidationError{}))
 	})
 
 	It("should return BadRequest if a user with the same username exists", func(){
