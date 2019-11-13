@@ -1,12 +1,12 @@
 ---
 applications:
- - name: paas-accounts
-   memory: 64M
-   stack: cflinuxfs3
-   disk_quota: 100M
-   instances: 2
-   buildpack: go_buildpack
-   env:
-     GOVERSION: go1.11
-     GOPACKAGENAME: github.com/alphagov/paas-accounts
-   command: ./bin/paas-accounts
+  - name: paas-accounts
+    memory: 64M
+    stack: cflinuxfs3
+    disk_quota: 100M
+    instances: 2
+    buildpack: go_buildpack
+    command: ./bin/paas-accounts
+
+    env:
+      GOVERSION: go1.13
