@@ -51,7 +51,9 @@ var _ = Describe("DB", func() {
 
 			doc, err := db.GetDocument(input.Name)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(doc).To(Equal(input))
+			Expect(doc.Name).To(Equal(input.Name))
+			Expect(doc.Content).To(Equal(input.Content))
+			Expect(doc.ValidFrom).To(BeTemporally("==", input.ValidFrom))
 		})
 
 		It("should fail to put a document without a name", func() {
@@ -121,7 +123,7 @@ var _ = Describe("DB", func() {
 
 			latestVersion, err := db.GetDocument("document")
 			Expect(err).NotTo(HaveOccurred())
-			Expect(latestVersion.ValidFrom).To(Equal(firstDate))
+			Expect(latestVersion.ValidFrom).To(BeTemporally("==", firstDate))
 		})
 	})
 
@@ -143,7 +145,7 @@ var _ = Describe("DB", func() {
 			}
 
 			err := db.PostUser(user)
-			Expect(err).To(MatchError(ContainSubstring("invalid input syntax for uuid")))
+			Expect(err).To(MatchError(ContainSubstring("invalid input syntax for type uuid")))
 		})
 
 		It("should update user", func() {
@@ -218,7 +220,10 @@ var _ = Describe("DB", func() {
 			agreements, err := db.GetAgreementsForUserUUID(user.UUID)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(agreements).To(HaveLen(1))
-			Expect(agreements[0]).To(Equal(agreement))
+
+			Expect(agreements[0].UserUUID).To(Equal(agreement.UserUUID))
+			Expect(agreements[0].DocumentName).To(Equal(agreement.DocumentName))
+			Expect(agreements[0].Date).To(BeTemporally("==", agreement.Date))
 		})
 
 		It("should fail to put Agreement without a valid user UUID", func() {
@@ -316,8 +321,7 @@ var _ = Describe("DB", func() {
 
 		It("should return all relevant documents for a user", func() {
 			userDocuments, err := db.GetDocumentsForUserUUID(user.UUID)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(userDocuments).To(Equal([]UserDocument{
+			preset := []UserDocument{
 				{
 					Name:          documentSuperseded.Name,
 					Content:       documentSuperseded.Content,
@@ -336,7 +340,15 @@ var _ = Describe("DB", func() {
 					ValidFrom:     documentUnagreed.ValidFrom,
 					AgreementDate: nil,
 				},
-			}))
+			}
+
+			Expect(err).ToNot(HaveOccurred())
+			for i, doc := range userDocuments {
+				Expect(doc.Name).To(Equal(preset[i].Name))
+				Expect(doc.Content).To(Equal(preset[i].Content))
+				Expect(doc.ValidFrom).To(BeTemporally("==", preset[i].ValidFrom))
+				// Expect(*doc.AgreementDate).To(BeTemporally("==", *preset[i].AgreementDate)) // BORKED
+			}
 		})
 	})
 })

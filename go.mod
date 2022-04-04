@@ -17,7 +17,7 @@ require (
 	github.com/labstack/echo v3.3.5+incompatible
 	github.com/labstack/gommon v0.2.2-0.20180426014445-588f4e8bddc6 // indirect
 	github.com/leodido/go-urn v1.1.0 // indirect
-	github.com/lib/pq v0.0.0-20180327071824-d34b9ff171c2
+	github.com/lib/pq v1.10.4
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.3 // indirect
 	github.com/onsi/ginkgo v1.4.0
