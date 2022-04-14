@@ -4,7 +4,7 @@ on:
 - pull_request
 
 env:
-  GO_VERSION: 1.17
+  GO_VERSION: 1.18
 
 jobs:
   unit:
@@ -37,7 +37,11 @@ jobs:
 
     - name: Install Ginkgo CLI
       run: |
+<<<<<<< HEAD
         go install github.com/onsi/ginkgo/ginkgo@v1.4
+=======
+        go install github.com/onsi/ginkgo/ginkgo@v1.6
+>>>>>>> 67d9ba3 (upgrades go in gha and ginkgo)
 
     - name: Run tests
       env:
