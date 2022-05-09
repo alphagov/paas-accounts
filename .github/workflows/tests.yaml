@@ -4,13 +4,13 @@ on:
 - pull_request
 
 env:
-  GO_VERSION: 1.13
+  GO_VERSION: 1.17
 
 jobs:
   unit:
     runs-on: ubuntu-latest
     name: Unit tests
-    
+
     services:
       postgres:
         image: postgres:12
