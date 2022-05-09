@@ -4,13 +4,13 @@ on:
 - pull_request
 
 env:
-  GO_VERSION: 1.13
+  GO_VERSION: 1.17
 
 jobs:
   unit:
     runs-on: ubuntu-latest
     name: Unit tests
-    
+
     services:
       postgres:
         image: postgres:12
@@ -37,7 +37,7 @@ jobs:
 
     - name: Install Ginkgo CLI
       run: |
-        go get -u github.com/onsi/ginkgo/ginkgo
+        go install github.com/onsi/ginkgo/ginkgo@v1.4
 
     - name: Run tests
       env:
