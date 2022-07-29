@@ -5,7 +5,7 @@ import (
 
 	. "github.com/alphagov/paas-accounts/database"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

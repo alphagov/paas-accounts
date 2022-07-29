@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 
 	"github.com/labstack/echo"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	. "github.com/alphagov/paas-accounts/api"
@@ -29,7 +29,6 @@ var _ = Describe("PostUserHandler", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(db.Init()).To(Succeed())
-
 
 		err = db.PostUser(database.User{
 			UUID:     "11111111-1111-1111-1111-111111111111",
@@ -108,7 +107,7 @@ var _ = Describe("PostUserHandler", func() {
 		Expect(handler(ctx)).To(BeAssignableToTypeOf(ValidationError{}))
 	})
 
-	It("should return BadRequest if a user with the same username exists", func(){
+	It("should return BadRequest if a user with the same username exists", func() {
 		payload := `{
 			"user_uuid": "00000000-0000-0000-0000-000000000001", 
 			"wrong_email_field": "e@ma.il", 

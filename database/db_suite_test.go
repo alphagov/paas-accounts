@@ -1,7 +1,7 @@
 package database_test
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"testing"
@@ -12,6 +12,6 @@ func TestDb(t *testing.T) {
 	RunSpecs(t, "Db Suite")
 }
 
-func strPoint(str string) *string{
+func strPoint(str string) *string {
 	return &str
 }
