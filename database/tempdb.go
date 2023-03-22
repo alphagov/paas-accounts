@@ -19,7 +19,7 @@ type TempDB struct {
 func NewTempDB() (*TempDB, error) {
 	masterConnectionString := os.Getenv("TEST_DATABASE_URL")
 	if masterConnectionString == "" {
-		masterConnectionString = "postgres://postgres:@localhost:5432/?sslmode=disable"
+		masterConnectionString = "postgres://postgres:postgres@localhost:5432/?sslmode=disable"
 	}
 	master, err := sql.Open("postgres", masterConnectionString)
 	if err != nil {

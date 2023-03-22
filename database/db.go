@@ -2,17 +2,16 @@ package database
 
 import (
 	"database/sql"
+	"embed"
 	"errors"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"fmt"
 
-	"github.com/golang-migrate/migrate"
-	"github.com/golang-migrate/migrate/database/postgres"
-	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/lib/pq"
 )
 
@@ -42,23 +41,16 @@ type UserDocument struct {
 }
 
 var (
+	//go:embed sql/*.sql
+	sqlFs embed.FS
+
 	ErrDocumentNotFound = errors.New("document not found")
 	ErrUserNotFound     = errors.New("user not found")
 )
 
-func sqlDir() string {
-	root := os.Getenv("APP_ROOT")
-	if root == "" {
-		root = os.Getenv("PWD")
-	}
-	if root == "" {
-		root, _ = os.Getwd()
-	}
-	return filepath.Join(root, "database", "sql")
-}
-
 type DB struct {
-	conn *sql.DB
+	conn    *sql.DB
+	connstr string
 }
 
 func NewDB(connstr string) (*DB, error) {
@@ -67,7 +59,7 @@ func NewDB(connstr string) (*DB, error) {
 		return nil, err
 	}
 
-	return &DB{conn: conn}, nil
+	return &DB{conn: conn, connstr: connstr}, nil
 }
 
 func (db *DB) Close() error {
@@ -75,8 +67,12 @@ func (db *DB) Close() error {
 }
 
 func (db *DB) Init() error {
-	driver, err := postgres.WithInstance(db.conn, &postgres.Config{})
-	m, err := migrate.NewWithDatabaseInstance("file://"+sqlDir(), "postgres", driver)
+	sourceDriver, err := iofs.New(sqlFs, "sql")
+	if err != nil {
+		return err
+	}
+
+	m, err := migrate.NewWithSourceInstance("iofs", sourceDriver, db.connstr)
 	if err != nil {
 		return err
 	}
