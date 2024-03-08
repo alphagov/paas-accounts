@@ -9,4 +9,4 @@ applications:
     command: ./bin/paas-accounts
 
     env:
-      GOVERSION: go1.20
+      GOVERSION: go1.21
