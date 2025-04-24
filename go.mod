@@ -1,6 +1,6 @@
 module github.com/alphagov/paas-accounts
 
-go 1.23
+go 1.22
 
 require (
 	github.com/go-playground/validator v9.29.0+incompatible
