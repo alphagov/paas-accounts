@@ -2,8 +2,8 @@
 applications:
   - name: paas-accounts
     memory: 64M
-    stack: cflinuxfs3
-    disk_quota: 100M
+    stack: cflinuxfs4
+    disk_quota: 128M
     instances: 2
     buildpack: go_buildpack
     command: ./bin/paas-accounts
