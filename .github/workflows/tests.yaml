@@ -4,7 +4,7 @@ on:
   - pull_request
 
 env:
-  GO_VERSION: "1.24"
+  GO_VERSION: "1.23"
   POSTGRES_DB: "test"
   POSTGRES_USER: "jeff"
   POSTGRES_PASSWORD: "secret"
